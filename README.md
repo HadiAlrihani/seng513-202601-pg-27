@@ -1,5 +1,9 @@
 # seng513-202601-pg-27
-
+Project members:
+- Hadi Alrihani
+- Mahir Alam
+- Sohaib Zia
+- Adiba Hossain
 
 
 ## Getting started
