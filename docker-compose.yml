@@ -1,5 +1,4 @@
 services:
-
   client:
     build: ./client
     container_name: react_client
@@ -10,7 +9,25 @@ services:
       - /app/node_modules
     stdin_open: true
     tty: true
-  
+
+  server:
+    build: ./server
+    container_name: express_server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    environment:
+      - PORT=5000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${db_username}
+      - DB_PASSWORD=${db_password}
+      - DB_NAME=${db_name}
+    depends_on:
+      - db
+
   db:
     build: ./db
     container_name: postgresdb
