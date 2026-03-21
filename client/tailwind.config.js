@@ -8,6 +8,15 @@ export default {
       fontFamily: {
         italiana: ['Italiana', 'sans-serif'],
       },
+      screens: {
+        // wide BUT short (landscape phones, small windows)
+        'md-short': {
+          raw: '(min-width: 768px) and (max-height: 500px)',
+        },
+        'md-tall': {
+          raw: '(min-width: 768px) and (min-height: 600px)',
+        }
+      }
     },
   },
   plugins: [],

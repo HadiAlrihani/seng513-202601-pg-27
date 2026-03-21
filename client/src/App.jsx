@@ -1,15 +1,20 @@
 import { useState } from 'react'
-import Login from './pages/Login'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css'
+import Login from './pages/Login'
+import CreateAccount from './pages/CreateAccount';
 
 function App() {
 
   return (
-    <>
-      <div className='flex flex-col items-center justify-center bg-white'>
-        <Login/>
+    <Router>
+      <div className='h-screen bg-white'>
+        <Routes>
+          <Route path='/' element={<Login />} />
+          <Route path='/create-account' element={<CreateAccount />} />
+        </Routes>
       </div>
-    </>
+    </Router>
   )
 }
 
