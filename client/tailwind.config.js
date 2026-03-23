@@ -7,6 +7,7 @@ export default {
     extend: {
       fontFamily: {
         italiana: ['Italiana', 'sans-serif'],
+        inter: ['Inter', 'sans-serif']
       },
       screens: {
         // wide BUT short (landscape phones, small windows)
