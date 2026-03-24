@@ -19,7 +19,7 @@ CREATE TABLE bookclubs (
 );
 
 CREATE TABLE bookclub_members(
-    user_id INTEGER REFERENCES users(id),
+    user_id INTEGER REFERENCES users(id), 
     club_id INTEGER REFERENCES bookclubs(id),
     PRIMARY KEY (user_id, club_id)
 );
