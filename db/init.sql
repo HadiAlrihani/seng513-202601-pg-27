@@ -27,6 +27,7 @@ CREATE TABLE bookclubs (
     book_isbn TEXT REFERENCES books(isbn),
     book_title TEXT NOT NULL,
     club_name TEXT NOT NULL,
+    club_code TEXT UNIQUE,
     number_members INTEGER NOT NULL,
     max_members INTEGER NOT NULL,
     club_description TEXT,
