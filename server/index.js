@@ -5,7 +5,6 @@ import cors from "cors";
 import authRoutes from "./authentication/authRoutes.js";
 import { pool } from "./authentication/dbConfig.js";
 import bookclubRoutes from "./bookclubs/bookclubRoutes.js";
-import genreRoutes from "./genres/genreRoutes.js";
 
 
 const app = express();
@@ -35,7 +34,6 @@ app.get("/", async (req, res) => {
 // All auth routes (register + login)
 app.use("/users", authRoutes);
 app.use("/bookclubs", bookclubRoutes);
-app.use("/genres", genreRoutes);
 
 // Start server
 app.listen(PORT, () => {

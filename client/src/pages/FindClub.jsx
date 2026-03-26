@@ -42,24 +42,24 @@ function FindClub() {
     fetchClubs();
   }, []);
 
-  useEffect(() => {
-    const fetchGenres = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/genres");
+  // useEffect(() => {
+  //   const fetchGenres = async () => {
+  //     try {
+  //       const response = await fetch("http://localhost:5000/genres");
 
-        if (!response.ok) {
-          return;
-        }
+  //       if (!response.ok) {
+  //         return;
+  //       }
 
-        const data = await response.json();
-        setGenres(data);
-      } catch (error) {
-        console.warn("Genres not ready yet");
-      }
-    };
+  //       const data = await response.json();
+  //       setGenres(data);
+  //     } catch (error) {
+  //       console.warn("Genres not ready yet");
+  //     }
+  //   };
 
-    fetchGenres();
-  }, []);
+  //   fetchGenres();
+  // }, []);
 
   const filteredClubs = useMemo(() => {
     return clubs.filter((club) => {
