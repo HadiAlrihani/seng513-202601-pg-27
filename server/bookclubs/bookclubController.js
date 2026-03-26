@@ -6,7 +6,7 @@ export const getPublicClubs = async (req, res) => {
       "SELECT * FROM bookclubs WHERE public = true ORDER BY id ASC"
     );
 
-    res.status(200).json(result.rows);
+    return res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error fetching public clubs:", error);
     return res.status(500).json({ error: "Failed to fetch public clubs" });

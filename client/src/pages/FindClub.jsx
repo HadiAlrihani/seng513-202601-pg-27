@@ -5,21 +5,34 @@ function FindClub() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [genres, setGenres] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState("All");
+
 
   useEffect(() => {
     const fetchClubs = async () => {
       try {
-        const response = await fetch("http://localhost:5000/bookclubs/public");
+        const [clubsResponse, genresResponse] = await Promise.all([
+          fetch("http://localhost:5000/bookclubs/public"),
+          fetch("http://localhost:5000/genres"),
+        ]);
 
-        if (!response.ok) {
+        if (!clubsResponse.ok) {
           throw new Error("Failed to fetch public book clubs");
         }
 
-        const data = await response.json();
-        setClubs(data);
+        if (genresResponse.ok) {
+          const genresData = await genresResponse.json();
+          setGenres(genresData);
+        }
+
+        const clubsData = await clubsResponse.json();
+        const genresData = await genresResponse.json();
+
+        setClubs(clubsData);
+        setGenres(genresData);
       } catch (err) {
-        console.error("Error fetching clubs:", err);
+        console.error("Error fetching data:", err);
         setError("Could not load book clubs.");
       } finally {
         setLoading(false);
@@ -27,6 +40,25 @@ function FindClub() {
     };
 
     fetchClubs();
+  }, []);
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/genres");
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setGenres(data);
+      } catch (error) {
+        console.warn("Genres not ready yet");
+      }
+    };
+
+    fetchGenres();
   }, []);
 
   const filteredClubs = useMemo(() => {
@@ -103,10 +135,11 @@ function FindClub() {
               className="min-w-[200px] rounded-xl border-none bg-[#e9eee6] px-4 py-3 text-sm text-gray-800 outline-none ring-0"
             >
               <option value="All">Select a genre</option>
-              <option value="Dune">Dune</option>
-              <option value="1984">1984</option>
-              <option value="Fiction">Fiction</option>
-              <option value="Romance">Romance</option>
+              {genres.map((genre) => (
+                <option key={genre.id} value={genre.genre_name}>
+                  {genre.genre_name}
+                </option>
+              ))}
             </select>
           </div>
         </section>
