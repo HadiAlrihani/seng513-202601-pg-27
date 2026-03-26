@@ -1,13 +1,17 @@
 // Main server file
 
 import express from "express";
+import cors from "cors";
 import authRoutes from "./authentication/authRoutes.js";
 import { pool } from "./authentication/dbConfig.js";
 import bookclubRoutes from "./bookclubs/bookclubRoutes.js";
 
+
+
 const app = express();
 const PORT = 5000;
 
+app.use(cors());
 // Middleware to read JSON data from requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
