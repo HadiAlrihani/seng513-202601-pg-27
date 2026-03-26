@@ -12,27 +12,16 @@ function FindClub() {
   useEffect(() => {
     const fetchClubs = async () => {
       try {
-        const [clubsResponse, genresResponse] = await Promise.all([
-          fetch("http://localhost:5000/bookclubs/public"),
-          fetch("http://localhost:5000/genres"),
-        ]);
+        const clubsResponse = await fetch("http://localhost:5000/bookclubs/public");
 
         if (!clubsResponse.ok) {
           throw new Error("Failed to fetch public book clubs");
         }
 
-        if (genresResponse.ok) {
-          const genresData = await genresResponse.json();
-          setGenres(genresData);
-        }
-
         const clubsData = await clubsResponse.json();
-        const genresData = await genresResponse.json();
-
         setClubs(clubsData);
-        setGenres(genresData);
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("Error fetching clubs:", err);
         setError("Could not load book clubs.");
       } finally {
         setLoading(false);
@@ -41,25 +30,6 @@ function FindClub() {
 
     fetchClubs();
   }, []);
-
-  // useEffect(() => {
-  //   const fetchGenres = async () => {
-  //     try {
-  //       const response = await fetch("http://localhost:5000/genres");
-
-  //       if (!response.ok) {
-  //         return;
-  //       }
-
-  //       const data = await response.json();
-  //       setGenres(data);
-  //     } catch (error) {
-  //       console.warn("Genres not ready yet");
-  //     }
-  //   };
-
-  //   fetchGenres();
-  // }, []);
 
   const filteredClubs = useMemo(() => {
     return clubs.filter((club) => {
@@ -123,7 +93,7 @@ function FindClub() {
           <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
             <input
               type="text"
-              placeholder="Enter a code"
+              placeholder="Enter a code or name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="min-w-[200px] rounded-xl border-none bg-[#e9eee6] px-4 py-3 text-sm text-gray-800 outline-none ring-0 placeholder:text-gray-500"
