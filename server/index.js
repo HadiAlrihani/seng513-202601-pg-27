@@ -3,6 +3,7 @@
 import express from "express";
 import authRoutes from "./authentication/authRoutes.js";
 import { pool } from "./authentication/dbConfig.js";
+import bookclubRoutes from "./bookclubs/bookclubRoutes.js";
 
 const app = express();
 const PORT = 5000;
@@ -29,6 +30,7 @@ app.get("/", async (req, res) => {
 });
 // All auth routes (register + login)
 app.use("/users", authRoutes);
+app.use("/bookclubs", bookclubRoutes);
 
 // Start server
 app.listen(PORT, () => {
