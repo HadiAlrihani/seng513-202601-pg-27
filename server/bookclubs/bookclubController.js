@@ -3,7 +3,7 @@ import { pool } from "../authentication/dbConfig.js";
 export const getPublicClubs = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM bookclubs WHERE public = true ORDER BY id ASC"
+      "SELECT * FROM bookclubs WHERE visibility = 'public' ORDER BY id ASC"
     );
 
     return res.status(200).json(result.rows);
