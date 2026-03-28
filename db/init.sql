@@ -3,18 +3,18 @@ Schema of the Wormly Connected database. Handles relationships between
 users and books, authors, genres, bookclubs, and other users.*/
 
 --DROP TABLES TO SAFELY RECREATE SCHEMA
-DROP TABLE IF EXISTS books;
-DROP TABLE IF EXISTS genres;
-DROP TABLE IF EXISTS authors;
-DROP TABLE IF EXISTS bookclubs;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS user_friends;
-DROP TABLE IF EXISTS user_books;
-DROP TABLE IF EXISTS user_genres;
-DROP TABLE IF EXISTS book_genres;
-DROP TABLE IF EXISTS user_authors;
-DROP TABLE IF EXISTS checkpoints;
-DROP TABLE IF EXISTS bookclub_members;
+DROP TABLE IF EXISTS bookclub_members CASCADE;
+DROP TABLE IF EXISTS checkpoints CASCADE;
+DROP TABLE IF EXISTS user_authors CASCADE;
+DROP TABLE IF EXISTS book_genres CASCADE;
+DROP TABLE IF EXISTS user_genres CASCADE;
+DROP TABLE IF EXISTS user_books CASCADE;
+DROP TABLE IF EXISTS user_friends CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS bookclubs CASCADE;
+DROP TABLE IF EXISTS authors CASCADE;
+DROP TABLE IF EXISTS genres CASCADE;
+DROP TABLE IF EXISTS books CASCADE;
 
 
 CREATE TABLE books (
