@@ -2,14 +2,32 @@
 Schema of the Wormly Connected database. Handles relationships between
 users and books, authors, genres, bookclubs, and other users.*/
 
+--DROP TABLES TO SAFELY RECREATE SCHEMA
+DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS genres;
+DROP TABLE IF EXISTS authors;
+DROP TABLE IF EXISTS bookclubs;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS user_friends;
+DROP TABLE IF EXISTS user_books;
+DROP TABLE IF EXISTS user_genres;
+DROP TABLE IF EXISTS book_genres;
+DROP TABLE IF EXISTS user_authors;
+DROP TABLE IF EXISTS checkpoints;
+DROP TABLE IF EXISTS bookclub_members;
 
 
 CREATE TABLE books (
-    isbn TEXT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+
+    --ISBN-13 is only used on books post 2007, so both are stored if available
+    isbn_10 TEXT UNIQUE,
+    isbn_13 TEXT UNIQUE,
     title TEXT NOT NULL,
     author TEXT NOT NULL,
     cover_image TEXT,
-    book_length INTEGER NOT NULL
+    book_length INTEGER NOT NULL,
+    book_description TEXT
 );
 
 CREATE TABLE genres (
@@ -24,16 +42,18 @@ CREATE TABLE authors (
 
 CREATE TABLE bookclubs (
     id SERIAL PRIMARY KEY,
-    book_isbn TEXT REFERENCES books(isbn),
+    book_id INTEGER REFERENCES books(id),
     book_title TEXT NOT NULL,
     club_name TEXT NOT NULL,
+
+    --lookup code for private book clubs
     club_code TEXT UNIQUE,
     number_members INTEGER NOT NULL,
     max_members INTEGER NOT NULL,
     club_description TEXT,
 
     --boolean flagging whether the club is public or private
-    public BOOLEAN DEFAULT true
+    visibility TEXT NOT NULL CHECK (visibility in ('public', 'private'))
 );
 
 CREATE TABLE users (
@@ -43,7 +63,7 @@ CREATE TABLE users (
     user_password TEXT NOT NULL,
 
     --These two keep track of last interacted with book/club for quick user access
-    last_updated_isbn TEXT REFERENCES books(isbn),
+    last_updated_id INTEGER REFERENCES books(id),
     last_updated_club INTEGER REFERENCES bookclubs(id)
 );
 
@@ -56,8 +76,8 @@ CREATE TABLE user_friends (
 --Associates users with books (many-to-many relationsihp)
 CREATE TABLE user_books (
     user_id INTEGER REFERENCES users(id),
-    book_isbn TEXT REFERENCES books(isbn),
-    PRIMARY KEY (user_id, book_isbn),
+    book_id INTEGER REFERENCES books(id),
+    PRIMARY KEY (user_id, book_id),
     date_started DATE,
     date_finished DATE,
     read_status TEXT CHECK (read_status IN ('to_read', 'reading', 'finished')),
@@ -65,7 +85,7 @@ CREATE TABLE user_books (
     review TEXT,
 
     --whether a user has this book as one of their favorites
-    is_favorite BOOLEAN
+    is_favorite BOOLEAN default FALSE
 );
 
 
@@ -81,9 +101,9 @@ CREATE TABLE user_genres (
 --Associates books with genres (many-to-many relationship)
 --Prevents us from storing book genres as a list in the books table
 CREATE TABLE book_genres (
-    book_isbn TEXT REFERENCES books(isbn),
+    book_id INTEGER REFERENCES books(id),
     genre_id INTEGER REFERENCES genres(id),
-    PRIMARY KEY (book_isbn, genre_id)
+    PRIMARY KEY (book_id, genre_id)
 );
 
 
@@ -108,7 +128,6 @@ CREATE TABLE bookclub_members (
     user_id INTEGER REFERENCES users(id), 
     club_id INTEGER REFERENCES bookclubs(id),
     user_role TEXT NOT NULL CHECK (user_role IN ('member', 'moderator')),
-
     progress_checkpoint INTEGER,
 
     PRIMARY KEY (user_id, club_id),
