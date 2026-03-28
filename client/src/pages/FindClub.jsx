@@ -71,7 +71,7 @@ function FindClub() {
 
   return (
     <div className="min-h-screen bg-neutral-800 px-4 py-8">
-      <div className="mx-auto max-w-6xl overflow-hidden rounded-xl bg-zinc-50 shadow-lg">
+      <div className="mx-auto min-h-screen max-w-6xl overflow-hidden rounded-xl bg-zinc-50 shadow-lg">
         <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#dfe9d9] text-sm font-semibold text-[#6b8b67]">
