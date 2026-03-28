@@ -48,7 +48,7 @@ INSERT INTO authors (author_name) VALUES
 
 INSERT INTO bookclubs (book_id, book_title, club_name, club_code, number_members, max_members, 
 club_description, visibility) VALUES
-(1, 'Dune', 'Dune Deep Dive', NULL, 7, 20, 'Analyze themes and world-building in Dune.', 'public'),
+(1, 'Dune', 'Dune Deep Dive', NULL, 20, 20, 'Analyze themes and world-building in Dune.', 'public'),
 (2,'The Hunger Games', 'Hunger Games book club', NULL, 2, 10, 'Book Club for The Hunger Games', 'public')
 (2, 'The Hunger Games', 'Elite Hunger Club', 'HG999', 3, 10, 'Invite-only Hunger Games discussion.', 'private'),
 (3, 'A Game of Thrones (HBO Tie-in Edition)', 'Westeros Politics Club', NULL, 6, 20, 'Discuss power, betrayal, and strategy.', 'public');
