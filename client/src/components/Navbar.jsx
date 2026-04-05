@@ -1,19 +1,20 @@
 import { useNavigate } from "react-router-dom";
 
-import react from "../assets/react.svg"
+import logo from "../assets/logo.png"
 
 export default function Navbar() {
     const navigate = useNavigate();
 
     return (
-        <div className="w-full h-[15vh] border border-black hidden md-tall:flex items-center relative" >
+        <div className="w-full h-[15vh] p-4 border border-black hidden md-computer:flex items-center justify-between" >
             <button
             className="w-[15vh] h-[15vh] box-border">
                 <img 
-                className="w-full h-[70%]"
-                src={react} alt="Wormly logo"></img>
+                className="w-full h-full"
+                src={logo} alt="Wormly logo" />
             </button>
-            <h1 className="absolute left-1/2 -translate-x-1/2 font-italiana text-7xl">Wormly Connected</h1>
+            <h1 className="font-italiana text-7xl">Wormly Connected</h1>
+            <div className="w-[15vw]"></div>
         </div>
     )
 }
