@@ -25,6 +25,7 @@ services:
       - DB_USER=${db_username}
       - DB_PASSWORD=${db_password}
       - DB_NAME=${db_name}
+      - SECRET_KEY=${SECRET_KEY}
     depends_on:
       - db
 

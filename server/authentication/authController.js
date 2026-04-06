@@ -6,17 +6,26 @@ import { pool } from "./dbConfig.js";
 
 // Register a new user
 export const registerUser = async (req, res) => {
-  const { username, email, user_password } = req.body;
+  const { email, username, user_password } = req.body;
 
   try {
     // Check if email already exists
-    const existingUser = await pool.query(
+    const existingEmail = await pool.query(
       "SELECT * FROM users WHERE email = $1",
       [email],
     );
 
-    if (existingUser.rows.length > 0) {
+    if (existingEmail.rows.length > 0) {
       return res.status(400).json({ error: "Email already exists" });
+    }
+
+    const existingUsername = await pool.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username],
+    );
+
+    if (existingUsername.rows.length > 0) {
+      return res.status(400).json({ error: "Username already in use"})
     }
 
     // Hash password
@@ -44,16 +53,24 @@ export const registerUser = async (req, res) => {
 
 // Login user
 export const loginUser = async (req, res) => {
-  const { email, user_password } = req.body;
+  const { username_or_email, user_password } = req.body;
 
   try {
-    // Find user
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
+    // Find user, first by username, then by email
+    const username_result = await pool.query("SELECT * FROM users WHERE username = $1", 
+      [username_or_email],
+    );
 
-    if (result.rows.length === 0) {
-      return res.status(400).json({ error: "User not found" });
+    let result = username_result
+
+    if (username_result.rows.length === 0) {
+      const email_result = await pool.query("SELECT * FROM users WHERE email = $1",
+        [username_or_email],
+      );
+      result = email_result
+      if (email_result.rows.length === 0) {
+        return res.status(400).json({ error: "User not found" });
+      }
     }
 
     const user = result.rows[0];
