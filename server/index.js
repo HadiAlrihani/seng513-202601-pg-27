@@ -1,6 +1,7 @@
 // Main server file
 
 import express from "express";
+import cors from "cors";
 import authRoutes from "./authentication/authRoutes.js";
 import { pool } from "./authentication/dbConfig.js";
 
@@ -10,6 +11,10 @@ const PORT = 5000;
 // Middleware to read JSON data from requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 
 // Test route to check server + database
 app.get("/", async (req, res) => {
@@ -31,6 +36,6 @@ app.get("/", async (req, res) => {
 app.use("/users", authRoutes);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

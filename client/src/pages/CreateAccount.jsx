@@ -27,7 +27,7 @@ export default function CreateAccount() {
 
             if (response.ok) {
                 console.log("Account created:", data),
-                navigate("/select-genres")
+                navigate("/home")
             }
             else {
                 console.log("Creation failed: ", data.message)
