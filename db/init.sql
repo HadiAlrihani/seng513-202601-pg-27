@@ -22,6 +22,13 @@ CREATE TABLE books(
     author TEXT NOT NULL
 );
 
+CREATE TABLE book_ratings (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    book_isbn TEXT NOT NULL REFERENCES books(isbn) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    PRIMARY KEY (user_id, book_isbn)
+);
+
 CREATE TABLE bookclubs (
     id SERIAL PRIMARY KEY,
     club_name TEXT NOT NULL,
