@@ -14,6 +14,10 @@ app.use(cors());
 // Middleware to read JSON data from requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 
 // Test route to check server + database
 app.get("/", async (req, res) => {
@@ -36,6 +40,6 @@ app.use("/users", authRoutes);
 app.use("/bookclubs", bookclubRoutes);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
