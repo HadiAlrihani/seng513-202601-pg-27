@@ -7,6 +7,7 @@ import CreateAccount from './pages/CreateAccount';
 import SelectGenres from './pages/selectGenres';
 import Homepage from './pages/Homepage';
 import FindClub from "./pages/FindClub";
+import Profile from './pages/Profile';
 
 function App() {
 
@@ -18,6 +19,7 @@ function App() {
           <Route path='/create-account' element={ <CreateAccount /> } />
           <Route path='/select-genres' element={ <SelectGenres /> } />
           <Route path='/home' element={ <Homepage /> } />
+          <Route path='/profile' element={ <Profile />} />
           <Route path="/clubs" element={<FindClub />} />
         </Routes>
       </div>
