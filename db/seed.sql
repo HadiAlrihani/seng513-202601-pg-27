@@ -54,9 +54,15 @@ club_description, visibility) VALUES
 (3, 'A Game of Thrones (HBO Tie-in Edition)', 'Westeros Politics Club', NULL, 6, 20, 'Discuss power, betrayal, and strategy.', 'public');
 
 INSERT INTO users (username, email, user_password, last_updated_id, last_updated_club) VALUES
-('admin', 'admin.email@gmail.com', 'admin123', NULL, NULL),
-('club_moderator', 'mod@gmail.com', 'mod123', 2, 1),
-('book_enjoyer', 'reader@gmail.com', 'books123', 2, 1);
+
+/*The password for admin is admin123*/
+('admin', 'admin.email@gmail.com', '$2b$10$MMxloxulFa3HmlnS1NaTyey0unknfEjQd1uFXTlAHiITCtKmDALym', NULL, NULL),
+
+/*The password for moderator is mod123*/
+('club_moderator', 'mod@gmail.com', '$2b$10$mLcdM6lmDlxTvSmrpS4/tOZAhuyLiazMy5j7sNFR6.PTPfud3DocK', 2, 1),
+
+/*The password for enjoyer is books123*/
+('book_enjoyer', 'reader@gmail.com', '$2b$10$qkblFxORoJrK0jup2P42VOCIpEuxoLGSWqUKJWHEz.mRTzY0BEsmu', 2, 1);
 
 INSERT INTO user_friends (friend1_id, friend2_id) VALUES (2, 3);
 
