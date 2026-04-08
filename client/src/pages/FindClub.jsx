@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 
 function FindClub() {
+  const userId = 1; // temporary until real auth is connected
+
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [genres, setGenres] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState("All");
-
 
   useEffect(() => {
     const fetchClubs = async () => {
@@ -30,6 +31,41 @@ function FindClub() {
 
     fetchClubs();
   }, []);
+
+  const handleJoin = async (clubId) => {
+    try {
+      const response = await fetch("http://localhost:5000/bookclubs/join", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          clubId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Failed to join club");
+        return;
+      }
+
+      setClubs((prevClubs) =>
+        prevClubs.map((club) =>
+          club.id === clubId
+            ? { ...club, number_members: club.number_members + 1 }
+            : club
+        )
+      );
+
+      alert("Joined successfully");
+    } catch (err) {
+      console.error("Error joining club:", err);
+      alert("Something went wrong");
+    }
+  };
 
   const filteredClubs = useMemo(() => {
     return clubs.filter((club) => {
@@ -159,6 +195,10 @@ function FindClub() {
                     <div className="mt-5 flex justify-end">
                       <button
                         disabled={isFull}
+                        onClick={() => {
+                          console.log("Join clicked", club.id);
+                          handleJoin(club.id);
+                        }}
                         className={`rounded-lg px-4 py-2 text-sm font-medium ${
                           isFull
                             ? "cursor-not-allowed bg-red-400 text-white"

@@ -12,7 +12,6 @@ export const getPublicClubs = async (req, res) => {
     return res.status(500).json({ error: "Failed to fetch public clubs" });
   }
 };
-
 export const joinClub = async (req, res) => {
   const { userId, clubId } = req.body;
 
@@ -39,7 +38,7 @@ export const joinClub = async (req, res) => {
     }
 
     const existingMemberResult = await pool.query(
-      "SELECT * FROM bookclub_members WHERE user_id = $1 AND bookclub_id = $2",
+      "SELECT * FROM bookclub_members WHERE user_id = $1 AND club_id = $2",
       [userId, clubId]
     );
 
@@ -48,7 +47,7 @@ export const joinClub = async (req, res) => {
     }
 
     await pool.query(
-      "INSERT INTO bookclub_members (user_id, bookclub_id) VALUES ($1, $2)",
+      "INSERT INTO bookclub_members (user_id, club_id) VALUES ($1, $2)",
       [userId, clubId]
     );
 
