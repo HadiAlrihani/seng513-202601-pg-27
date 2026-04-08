@@ -12,3 +12,56 @@ export const getPublicClubs = async (req, res) => {
     return res.status(500).json({ error: "Failed to fetch public clubs" });
   }
 };
+
+export const joinClub = async (req, res) => {
+  const { userId, clubId } = req.body;
+
+  if (!userId || !clubId) {
+    return res.status(400).json({
+      error: "userId and clubId are required",
+    });
+  }
+
+  try {
+    const clubResult = await pool.query(
+      "SELECT * FROM bookclubs WHERE id = $1",
+      [clubId]
+    );
+
+    if (clubResult.rows.length === 0) {
+      return res.status(404).json({ error: "Club not found" });
+    }
+
+    const club = clubResult.rows[0];
+
+    if (club.number_members >= club.max_members) {
+      return res.status(400).json({ error: "Club is full" });
+    }
+
+    const existingMemberResult = await pool.query(
+      "SELECT * FROM bookclub_members WHERE user_id = $1 AND bookclub_id = $2",
+      [userId, clubId]
+    );
+
+    if (existingMemberResult.rows.length > 0) {
+      return res.status(400).json({ error: "User already joined this club" });
+    }
+
+    await pool.query(
+      "INSERT INTO bookclub_members (user_id, bookclub_id) VALUES ($1, $2)",
+      [userId, clubId]
+    );
+
+    await pool.query(
+      "UPDATE bookclubs SET number_members = number_members + 1 WHERE id = $1",
+      [clubId]
+    );
+
+    return res.status(200).json({
+      message: "Joined club successfully",
+    });
+  } catch (error) {
+    console.error("Error joining club:", error);
+    return res.status(500).json({ error: "Failed to join club" });
+  }
+};
