@@ -15,9 +15,9 @@ export default function HomeSidebar() {
                 className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
                 md-computer:h-[10vw] md-computer:w-[10vw]">
                     <img src={bookshelf} 
-                    className="h-[14vw] w-[14vw] md-computer:h-[6vw] md-computer:w-[6vw] object-contain" />
+                    className="h-[16vw] w-[16vw] md-computer:h-[6vw] md-computer:w-[6vw] object-contain" />
                 </button>
-                <h1 className="font-inter text-center md-computer:text-lg">Friend's Shelf</h1>
+                <h1 className="pt-2 font-inter text-center md:text-2xl md-computer:text-lg">Friend's Shelf</h1>
             </div>
             <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
                 <button onClick={() => navigate('/clubs')} 
@@ -26,7 +26,7 @@ export default function HomeSidebar() {
                     <img src={find_icon} 
                     className="h-[14vw] w-[14vw] md-computer:h-[6vw] md-computer:w-[6vw] object-contain" />
                 </button>
-                <h1 className="font-inter text-center md-computer:text-lg">Find a Club</h1>
+                <h1 className="pt-2 font-inter text-center md:text-2xl md-computer:text-lg">Find a Club</h1>
             </div>
             <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
                 <button 
@@ -35,7 +35,7 @@ export default function HomeSidebar() {
                     <img src={discussion} 
                     className="h-[14vw] w-[14vw] md-computer:h-[6vw] md-computer:w-[6vw] object-contain" />
                 </button>
-                <h1 className="font-inter text-center md-computer:text-lg">Recent Discussion</h1>
+                <h1 className="pt-2 font-inter text-center md:text-2xl md-computer:text-lg">Recent Discussion</h1>
             </div>
         </div>
     )

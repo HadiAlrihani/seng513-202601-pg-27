@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 import HomeSidebar from "../components/HomeSidebar";
 
-import bookshelf from "../assets/bookshelf.png";
+import book_with_worm from "../assets/book_with_worm.png";
 
 export default function Homepage() {
     return  (
@@ -10,33 +10,33 @@ export default function Homepage() {
         <Navbar />
         <div className="h-[90vh] md-computer:h-[85vh] flex flex-col md-computer:flex-row">
             <div className="py-6 md-computer:hidden">
-                <h1 className="font-italiana text-3xl text-center">
+                <h1 className="font-italiana text-3xl md:text-5xl text-center">
                     Wormly Connected
                 </h1>
             </div>
             <HomeSidebar />
             <div className="flex flex-1 flex-col justify-evenly">
-                <h1 className="font-inter text-lg text-center">
+                <h1 className="font-inter text-2xl md-computer:text-3xl text-center">
                     Welcome, user...
                 </h1>
                 <div className="flex justify-evenly">
-                    <div className="flex flex-col">
+                    <div className="flex flex-1 flex-col items-center">
                         <button onClick={() => navigate('/friends-shelf')} 
-                        className="flex items-center justify-center w-36 h-36 box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
-                        md-computer:h-32 md-computer:w-32">
-                            <img src={bookshelf} 
-                            className="h-14 w-14 md-computer:h-20 md-computer:w-20 object-contain" />
+                        className="flex items-center justify-center w-[44vw] h-[44vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
+                        md-computer:h-[20vw] md-computer:w-[20vw]">
+                            <img src={book_with_worm} 
+                            className="h-[28vw] w-[28vw] md-computer:h-[16vw] md-computer:w-[16vw] object-contain" />
                         </button>
-                        <h1 className="font-inter text-center md-computer:text-lg">Friend's Shelf</h1>
+                        <h1 className="font-italiana pt-2 text-center md:text-2xl md-computer:text-3xl">Update Reading Progress</h1>
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-1 flex-col items-center">
                         <button onClick={() => navigate('/friends-shelf')} 
-                        className="flex items-center justify-center w-36 h-36 box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
-                        md-computer:h-32 md-computer:w-32">
-                            <img src={bookshelf} 
-                            className="h-14 w-14 md-computer:h-20 md-computer:w-20 object-contain" />
+                        className="flex items-center justify-center w-[44vw] h-[44vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
+                        md-computer:h-[20vw] md-computer:w-[20vw]">
+                            <img src={book_with_worm} 
+                            className="h-[28vw] w-[28vw] md-computer:h-[16vw] md-computer:w-[16vw] object-contain" />
                         </button>
-                        <h1 className="font-inter text-center md-computer:text-lg">Friend's Shelf</h1>
+                        <h1 className="font-italiana pt-2 text-center md:text-2xl md-computer:text-3xl">My Clubs</h1>
                     </div>
                 </div>
             </div>
