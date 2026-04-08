@@ -27,7 +27,8 @@ services:
       - DB_NAME=${db_name}
       - SECRET_KEY=${SECRET_KEY}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     build: ./db
@@ -38,3 +39,10 @@ services:
       - POSTGRES_USER=${db_username}
       - POSTGRES_PASSWORD=${db_password}
       - POSTGRES_DB=${db_name}
+      
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${db_username} -d ${db_name}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
