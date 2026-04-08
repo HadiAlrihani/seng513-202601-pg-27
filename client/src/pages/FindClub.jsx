@@ -9,6 +9,8 @@ function FindClub() {
   const [searchTerm, setSearchTerm] = useState("");
   const [genres, setGenres] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState("All");
+  const [joiningClubId, setJoiningClubId] = useState(null);
+  const [joinedClubIds, setJoinedClubIds] = useState([]);
 
   useEffect(() => {
     const fetchClubs = async () => {
@@ -33,6 +35,12 @@ function FindClub() {
   }, []);
 
   const handleJoin = async (clubId) => {
+    if (joiningClubId || joinedClubIds.includes(clubId)) {
+      return;
+    }
+
+    setJoiningClubId(clubId);
+
     try {
       const response = await fetch("http://localhost:5000/bookclubs/join", {
         method: "POST",
@@ -60,10 +68,13 @@ function FindClub() {
         )
       );
 
+      setJoinedClubIds((prev) => [...prev, clubId]);
       alert("Joined successfully");
     } catch (err) {
       console.error("Error joining club:", err);
       alert("Something went wrong");
+    } finally {
+      setJoiningClubId(null);
     }
   };
 
@@ -168,6 +179,25 @@ function FindClub() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
               {filteredClubs.map((club) => {
                 const isFull = club.number_members >= club.max_members;
+                const isJoining = joiningClubId === club.id;
+                const isJoined = joinedClubIds.includes(club.id);
+                const shouldDisable = isFull || isJoining || isJoined;
+
+                let buttonText = "Join";
+                if (isFull) buttonText = "Full";
+                else if (isJoining) buttonText = "Joining...";
+                else if (isJoined) buttonText = "Joined";
+
+                let buttonClass =
+                  "bg-white text-gray-900 hover:bg-gray-100";
+
+                if (isFull) {
+                  buttonClass = "cursor-not-allowed bg-red-400 text-white";
+                } else if (isJoined) {
+                  buttonClass = "cursor-not-allowed bg-green-600 text-white";
+                } else if (isJoining) {
+                  buttonClass = "cursor-not-allowed bg-gray-300 text-gray-700";
+                }
 
                 return (
                   <div
@@ -194,15 +224,11 @@ function FindClub() {
 
                     <div className="mt-5 flex justify-end">
                       <button
-                        disabled={isFull}
+                        disabled={shouldDisable}
                         onClick={() => handleJoin(club.id)}
-                        className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                          isFull
-                            ? "cursor-not-allowed bg-red-400 text-white"
-                            : "bg-white text-gray-900 hover:bg-gray-100"
-                        }`}
+                        className={`rounded-lg px-4 py-2 text-sm font-medium ${buttonClass}`}
                       >
-                        {isFull ? "Full" : "Join"}
+                        {buttonText}
                       </button>
                     </div>
                   </div>
