@@ -69,14 +69,7 @@ CREATE TABLE users (
     last_updated_club INTEGER REFERENCES bookclubs(id)
 );
 
--- Dev-only admin; password: admin123 (change in production)
-INSERT INTO users (username, email, user_password, is_admin)
-VALUES (
-    'admin',
-    'admin@email.com',
-    '$2b$10$9nHhTK.1zWixmOSlfj8EQOZQ9eOjnjc0EYmMICJEgFR841HXJwFAi',
-    TRUE
-);
+
 
 CREATE TABLE user_friends (
     friend1_id INTEGER REFERENCES users(id),
