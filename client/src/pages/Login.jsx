@@ -28,6 +28,8 @@ export default function Login() {
 
             if (response.ok) {
                 console.log("Login successful: ", data)
+                // Save the JWT so authenticated routes can use it
+                localStorage.setItem("token", data.token);
                 navigate("/home");
             }
             else {
