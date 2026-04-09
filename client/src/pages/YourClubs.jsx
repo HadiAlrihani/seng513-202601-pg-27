@@ -97,13 +97,20 @@ function YourClubs() {
                     </p>
                 </div>
 
-                <button
-                    onClick={loadUserClubs}
-                    className="mb-5 px-4 py-2 rounded-2xl bg-white border border-[#c8d5c3] hover:bg-[#f7faf6] transition"
-                >
-                    Refresh Clubs
-                </button>
-
+                <div className= "flex flex-col md:flex-row gap-3 mb-5">
+                    <button
+                        onClick={loadUserClubs}
+                        className="mb-5 px-4 py-2 rounded-2xl bg-white border border-[#c8d5c3] hover:bg-[#f7faf6] transition"
+                    >
+                        Refresh Clubs
+                    </button>
+                    <button
+                        onClick={() => navigate("/create-clubs")}
+                        className="mb-5 px-4 py-2 rounded-2xl bg-white border border-[#c8d5c3] hover:bg-[#f7faf6] transition"
+                    >
+                        Add a Club 
+                    </button>
+                </div>
                 {isLoading ? (
                     <div className="bg-white/80 border border-[#dde6d8] rounded-[24px] p-6">
                         Loading your clubs...
