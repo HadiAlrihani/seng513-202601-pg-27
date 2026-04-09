@@ -42,10 +42,23 @@ CREATE TABLE authors (
     author_name TEXT NOT NULL
 );
 
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    user_password TEXT NOT NULL,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+
+    --These two keep track of last interacted with book/club for quick user access
+    last_updated_id INTEGER REFERENCES books(id),
+    last_updated_club INTEGER 
+);
+
 
 CREATE TABLE bookclubs (
     id SERIAL PRIMARY KEY,
     book_id INTEGER REFERENCES books(id),
+    created_by INTEGER REFERENCES users(id),
     book_title TEXT NOT NULL,
     club_name TEXT NOT NULL,
 
@@ -58,19 +71,6 @@ CREATE TABLE bookclubs (
     --boolean flagging whether the club is public or private
     visibility TEXT NOT NULL CHECK (visibility in ('public', 'private'))
 );
-
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    user_password TEXT NOT NULL,
-    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-
-    --These two keep track of last interacted with book/club for quick user access
-    last_updated_id INTEGER REFERENCES books(id),
-    last_updated_club INTEGER REFERENCES bookclubs(id)
-);
-
 
 
 CREATE TABLE user_friends (

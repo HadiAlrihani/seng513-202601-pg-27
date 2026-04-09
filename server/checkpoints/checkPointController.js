@@ -7,8 +7,8 @@ export const createCheckpoint = async (req, res) => {
 
 try {
     const result = await pool.query(
-      `INSERT INTO checkpoints (club_id, checkpoint_num, checkpoint_name)",
-       VALUES ($1, $2, $3),
+      `INSERT INTO checkpoints (club_id, checkpoint_num, checkpoint_name)
+       VALUES ($1, $2, $3)
        RETURNING *`
       [clubId, checkpoint_num, checkpoint_name]
     );

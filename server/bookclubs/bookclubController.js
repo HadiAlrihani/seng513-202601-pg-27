@@ -194,7 +194,7 @@ export const leaveClub = async (req, res) => {
 };
 
 export const createClub = async (req, res) => {
-  const { club_name, book_title, club_description, max_members, visibility} = req.body;
+  const { club_name, book_title, club_description, max_members, visibility, userId} = req.body;
 
   const maxMembersInt = parseInt(max_members);
 
@@ -205,13 +205,22 @@ if(isNaN(maxMembersInt)){
 
   try {
     const clubResult = await pool.query(
-      `INSERT INTO bookclubs (club_name, book_title, club_description, number_members, max_members, visibility)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO bookclubs (club_name, book_title, club_description, number_members, max_members, visibility, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING*`,
-      [club_name, book_title, club_description, 1, maxMembersInt, visibility || "public"]
+      [club_name, book_title, club_description, 1, maxMembersInt, visibility || "public", userId]
     );
 
-   return res.status(200).json(clubResult.rows[0]);
+   const newClub = clubResult.rows[0];
+
+   await pool.query(
+      `INSERT INTO bookclub_members (user_id, club_id, user_role)
+       VALUES ($1, $2, 'moderator')
+       RETURNING*`,
+      [userId, newClub.id]
+    );
+
+    return res.status(200).json(newClub);
 
   } catch (error) {
     console.error("Error creating clubs:", error);
