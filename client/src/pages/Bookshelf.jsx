@@ -19,67 +19,97 @@ export default function Bookshelf() {
 
   // Shelf data grouped by read_status
   const [shelf, setShelf] = useState({ to_read: [], reading: [], finished: [] });
-  // All books available in the catalog (for the add-book dropdown)
-  const [allBooks, setAllBooks] = useState([]);
   const [activeTab, setActiveTab] = useState("reading");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // Add book form state
   const [showAddForm, setShowAddForm] = useState(false);
-  const [addBookId, setAddBookId] = useState("");
   const [addStatus, setAddStatus] = useState("to_read");
 
-  // Fetch the user's shelf and full book catalog on mount
+  // Google Books search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(null);
+
+  // Fetch the user's shelf on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      navigate("/"); // Redirect to login if not authenticated
+      navigate("/");
       return;
     }
 
-    const headers = { Authorization: `Bearer ${token}` };
-
-    Promise.all([
-      fetch("http://localhost:5000/bookshelf/", { headers }),
-      fetch("http://localhost:5000/bookshelf/books", { headers }),
-    ])
-      .then(async ([shelfRes, booksRes]) => {
-        if (!shelfRes.ok) throw new Error("Auth failed");
-        const shelfData = await shelfRes.json();
-        const booksData = await booksRes.json();
+    fetch("http://localhost:5000/bookshelf/", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Auth failed");
+        const shelfData = await res.json();
         setShelf(shelfData);
-        setAllBooks(booksData);
       })
       .catch(() => setError("Could not load bookshelf. Please try again."))
       .finally(() => setLoading(false));
   }, [navigate]);
 
-  // Add a book to the shelf via POST /bookshelf/
+  // Search Google Books via GET /bookshelf/search
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const token = localStorage.getItem("token");
+    setSearchLoading(true);
+    setSelectedBook(null);
+    setSearchResults([]);
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/bookshelf/search?q=${encodeURIComponent(searchQuery)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await res.json();
+      setSearchResults(data);
+    } catch {
+      // silently fail — user can retry
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Add the selected Google Book to the shelf via POST /bookshelf/from-google
   const handleAddBook = async (e) => {
     e.preventDefault();
+    if (!selectedBook) return;
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://localhost:5000/bookshelf/", {
+    const res = await fetch("http://localhost:5000/bookshelf/from-google", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ book_id: parseInt(addBookId), read_status: addStatus }),
+      body: JSON.stringify({ googleBook: selectedBook, read_status: addStatus }),
     });
 
     if (res.ok) {
       const newEntry = await res.json();
-      // Add to the correct shelf bucket
       setShelf((prev) => ({
         ...prev,
         [newEntry.read_status]: [...prev[newEntry.read_status], newEntry],
       }));
       setShowAddForm(false);
-      setAddBookId("");
-      setActiveTab(newEntry.read_status); // Switch to the tab the book was added to
+      setSearchQuery("");
+      setSearchResults([]);
+      setSelectedBook(null);
+      setActiveTab(newEntry.read_status);
     }
+  };
+
+  const handleCancelAdd = () => {
+    setShowAddForm(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSelectedBook(null);
   };
 
   // Move a book to a different status bucket via PATCH /bookshelf/:bookId
@@ -139,54 +169,94 @@ export default function Bookshelf() {
         <header className="bg-[#cfe0c8] px-6 py-6 flex items-center justify-between">
           <h1 className="text-3xl font-medium tracking-wide font-italiana">My Bookshelf</h1>
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => (showAddForm ? handleCancelAdd() : setShowAddForm(true))}
             className="bg-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-100 transition-colors"
           >
             {showAddForm ? "Cancel" : "+ Add Book"}
           </button>
         </header>
 
-        {/* Collapsible add-book form */}
+        {/* Collapsible add-book panel with Google Books search */}
         {showAddForm && (
-          <form
-            onSubmit={handleAddBook}
-            className="px-6 py-4 bg-[#e9eee6] flex gap-4 flex-wrap items-end border-b border-gray-200"
-          >
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">Book</label>
-              <select
-                value={addBookId}
-                onChange={(e) => setAddBookId(e.target.value)}
-                required
-                className="rounded-xl bg-white px-4 py-3 text-sm min-w-[220px] border border-gray-300"
+          <div className="px-6 py-4 bg-[#e9eee6] border-b border-gray-200">
+            {/* Search input */}
+            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for a book..."
+                className="flex-1 rounded-xl bg-white px-4 py-2 text-sm border border-gray-300"
+              />
+              <button
+                type="submit"
+                className="bg-[#b8d1b0] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#a5c4a0] transition-colors"
               >
-                <option value="">Select a book...</option>
-                {allBooks.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title} — {b.author}
-                  </option>
+                Search
+              </button>
+            </form>
+
+            {/* Search results */}
+            {searchLoading && (
+              <p className="text-sm text-gray-500 mb-3">Searching...</p>
+            )}
+            {!searchLoading && searchResults.length > 0 && (
+              <ul className="max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white mb-4 divide-y divide-gray-100">
+                {searchResults.map((book) => (
+                  <li
+                    key={book.google_books_id}
+                    onClick={() => setSelectedBook(book)}
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#f0f5ee] transition-colors ${
+                      selectedBook?.google_books_id === book.google_books_id
+                        ? "bg-[#dfe9d9]"
+                        : ""
+                    }`}
+                  >
+                    {book.cover_image ? (
+                      <img
+                        src={book.cover_image}
+                        alt={book.title}
+                        className="w-8 h-12 object-cover rounded flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-12 bg-gray-200 rounded flex-shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{book.title}</p>
+                      <p className="text-xs text-gray-500 truncate">{book.author}</p>
+                    </div>
+                  </li>
                 ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">Status</label>
-              <select
-                value={addStatus}
-                onChange={(e) => setAddStatus(e.target.value)}
-                className="rounded-xl bg-white px-4 py-3 text-sm border border-gray-300"
-              >
-                <option value="to_read">To Read</option>
-                <option value="reading">Reading</option>
-                <option value="finished">Finished</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="bg-[#b8d1b0] rounded-lg px-5 py-3 text-sm font-medium hover:bg-[#a5c4a0] transition-colors"
-            >
-              Add
-            </button>
-          </form>
+              </ul>
+            )}
+            {!searchLoading && searchResults.length === 0 && searchQuery && (
+              <p className="text-sm text-gray-500 mb-3">No results found.</p>
+            )}
+
+            {/* Add to shelf form — only shown once a book is selected */}
+            {selectedBook && (
+              <form onSubmit={handleAddBook} className="flex gap-3 flex-wrap items-center">
+                <p className="text-sm font-medium text-gray-700 flex-1 truncate">
+                  Adding: <span className="font-semibold">{selectedBook.title}</span>
+                </p>
+                <select
+                  value={addStatus}
+                  onChange={(e) => setAddStatus(e.target.value)}
+                  className="rounded-xl bg-white px-3 py-2 text-sm border border-gray-300"
+                >
+                  <option value="to_read">To Read</option>
+                  <option value="reading">Reading</option>
+                  <option value="finished">Finished</option>
+                </select>
+                <button
+                  type="submit"
+                  className="bg-[#b8d1b0] rounded-lg px-5 py-2 text-sm font-medium hover:bg-[#a5c4a0] transition-colors"
+                >
+                  Add to Shelf
+                </button>
+              </form>
+            )}
+          </div>
         )}
 
         {/* Tab navigation */}
