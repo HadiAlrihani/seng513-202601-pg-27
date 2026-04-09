@@ -27,7 +27,7 @@ export default function Homepage() {
             </div>
             <HomeSidebar />
             <div className="flex flex-1 flex-col justify-evenly">
-                <h1 className="font-inter text-2xl md-computer:text-3xl text-center">
+                <h1 className="font-inter text-2xl md:text-3xl md-computer:text-4xl text-center">
                     Welcome, {username}!
                 </h1>
                 <div className="flex justify-evenly">
