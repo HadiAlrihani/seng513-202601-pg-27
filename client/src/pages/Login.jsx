@@ -28,7 +28,7 @@ export default function Login() {
 
             if (response.ok) {
                 console.log("Login successful: ", data)
-                navigate("/clubs");
+                navigate("/home")
             }
             else {
                 console.log("Login failed: ", data.message)
