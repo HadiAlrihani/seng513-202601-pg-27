@@ -31,6 +31,8 @@ export default function Bookshelf() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const [searchError, setSearchError] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
 
   // Fetch the user's shelf on mount
@@ -59,6 +61,8 @@ export default function Bookshelf() {
     if (!searchQuery.trim()) return;
     const token = localStorage.getItem("token");
     setSearchLoading(true);
+    setSearchPerformed(false);
+    setSearchError("");
     setSelectedBook(null);
     setSearchResults([]);
 
@@ -67,10 +71,16 @@ export default function Bookshelf() {
         `http://localhost:5000/bookshelf/search?q=${encodeURIComponent(searchQuery)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setSearchError(err.error || "Search failed. Please try again.");
+        return;
+      }
       const data = await res.json();
       setSearchResults(data);
+      setSearchPerformed(true);
     } catch {
-      // silently fail — user can retry
+      setSearchError("Could not reach the server. Please try again.");
     } finally {
       setSearchLoading(false);
     }
@@ -109,6 +119,8 @@ export default function Bookshelf() {
     setShowAddForm(false);
     setSearchQuery("");
     setSearchResults([]);
+    setSearchPerformed(false);
+    setSearchError("");
     setSelectedBook(null);
   };
 
@@ -167,7 +179,15 @@ export default function Bookshelf() {
 
         {/* Page header with title and add-book toggle */}
         <header className="bg-[#cfe0c8] px-6 py-6 flex items-center justify-between">
-          <h1 className="text-3xl font-medium tracking-wide font-italiana">My Bookshelf</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/home")}
+              className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium flex items-center gap-1"
+            >
+              ← Back
+            </button>
+            <h1 className="text-3xl font-medium tracking-wide font-italiana">My Bookshelf</h1>
+          </div>
           <button
             onClick={() => (showAddForm ? handleCancelAdd() : setShowAddForm(true))}
             className="bg-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-100 transition-colors"
@@ -200,6 +220,9 @@ export default function Bookshelf() {
             {searchLoading && (
               <p className="text-sm text-gray-500 mb-3">Searching...</p>
             )}
+            {searchError && (
+              <p className="text-sm text-red-500 mb-3">{searchError}</p>
+            )}
             {!searchLoading && searchResults.length > 0 && (
               <ul className="max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white mb-4 divide-y divide-gray-100">
                 {searchResults.map((book) => (
@@ -229,7 +252,7 @@ export default function Bookshelf() {
                 ))}
               </ul>
             )}
-            {!searchLoading && searchResults.length === 0 && searchQuery && (
+            {!searchLoading && searchPerformed && searchResults.length === 0 && (
               <p className="text-sm text-gray-500 mb-3">No results found.</p>
             )}
 
