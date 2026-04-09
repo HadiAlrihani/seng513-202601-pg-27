@@ -31,6 +31,98 @@ export const getBookshelf = async (req, res) => {
   }
 };
 
+// GET /bookshelf/search?q=...
+// Proxies a query to the Google Books API and returns normalized results.
+export const searchGoogleBooks = async (req, res) => {
+  const { q } = req.query;
+  if (!q || !q.trim()) {
+    return res.status(400).json({ error: "Query is required" });
+  }
+
+  try {
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=10&printType=books`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.items) return res.status(200).json([]);
+
+    const results = data.items.map((item) => {
+      const info = item.volumeInfo;
+      return {
+        google_books_id: item.id,
+        title: info.title || "Unknown Title",
+        author: (info.authors || ["Unknown Author"]).join(", "),
+        // Use HTTPS to avoid mixed-content issues in the browser
+        cover_image: info.imageLinks?.thumbnail
+          ? info.imageLinks.thumbnail.replace("http://", "https://")
+          : null,
+        book_length: info.pageCount || 0,
+        book_description: info.description || null,
+      };
+    });
+
+    return res.status(200).json(results);
+  } catch (err) {
+    console.error("Error searching Google Books:", err);
+    return res.status(500).json({ error: "Failed to search books" });
+  }
+};
+
+// POST /bookshelf/from-google
+// Upserts a Google Books result into the books table, then adds it to the user's shelf.
+// Body: { googleBook: { google_books_id, title, author, cover_image, book_length, book_description }, read_status }
+export const addBookFromGoogle = async (req, res) => {
+  const { googleBook, read_status } = req.body;
+  const validStatuses = ["to_read", "reading", "finished"];
+
+  if (!googleBook?.google_books_id || !validStatuses.includes(read_status)) {
+    return res.status(400).json({ error: "Invalid book data or read_status" });
+  }
+
+  const { google_books_id, title, author, cover_image, book_length, book_description } = googleBook;
+
+  const date_started = read_status === "reading" ? new Date() : null;
+  const date_finished = read_status === "finished" ? new Date() : null;
+
+  try {
+    // Upsert the book by google_books_id so we never create duplicates
+    const bookResult = await pool.query(
+      `INSERT INTO books (google_books_id, title, author, cover_image, book_length, book_description)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (google_books_id) DO UPDATE SET
+         title = EXCLUDED.title,
+         author = EXCLUDED.author,
+         cover_image = EXCLUDED.cover_image
+       RETURNING id`,
+      [google_books_id, title, author, cover_image, book_length || 0, book_description]
+    );
+
+    const bookId = bookResult.rows[0].id;
+
+    await pool.query(
+      `INSERT INTO user_books (user_id, book_id, read_status, date_started, date_finished)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (user_id, book_id) DO NOTHING`,
+      [req.userId, bookId, read_status, date_started, date_finished]
+    );
+
+    const result = await pool.query(
+      `SELECT ub.book_id, ub.read_status, ub.date_started, ub.date_finished,
+              ub.rating, ub.review, ub.is_favorite,
+              b.title, b.author, b.cover_image, b.book_length
+       FROM user_books ub
+       JOIN books b ON ub.book_id = b.id
+       WHERE ub.user_id = $1 AND ub.book_id = $2`,
+      [req.userId, bookId]
+    );
+
+    return res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error adding book from Google:", err);
+    return res.status(500).json({ error: "Failed to add book" });
+  }
+};
+
 // GET /bookshelf/books
 // Returns all books in the catalog (used to populate the "add book" dropdown).
 export const getAllBooks = async (req, res) => {
