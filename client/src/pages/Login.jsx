@@ -30,6 +30,7 @@ export default function Login() {
             if (response.ok) {
                 console.log("Login successful: ", data);
 
+                localStorage.setItem("wormly_id", data.user.id);
                 localStorage.setItem("wormly_username", data.user.username);
                 localStorage.setItem("wormly_email", data.user.email);
                 localStorage.setItem("wormly_token", data.token);
