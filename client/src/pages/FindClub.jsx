@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+
 function FindClub() {
   const userId = 1; // temporary until auth is fully connected
 
