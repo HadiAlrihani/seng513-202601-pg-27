@@ -55,11 +55,10 @@ export default function Bookshelf() {
       .finally(() => setLoading(false));
   }, [navigate]);
 
-  // Search Google Books via GET /bookshelf/search
+  // Search Google Books directly from the browser (avoids Docker networking issues)
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    const token = localStorage.getItem("token");
     setSearchLoading(true);
     setSearchPerformed(false);
     setSearchError("");
@@ -68,19 +67,30 @@ export default function Bookshelf() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/bookshelf/search?q=${encodeURIComponent(searchQuery)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery)}&maxResults=10&printType=books`
       );
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        setSearchError(err.error || "Search failed. Please try again.");
+        setSearchError("Search failed. Please try again.");
         return;
       }
       const data = await res.json();
-      setSearchResults(data);
+      const results = (data.items || []).map((item) => {
+        const info = item.volumeInfo;
+        return {
+          google_books_id: item.id,
+          title: info.title || "Unknown Title",
+          author: (info.authors || ["Unknown Author"]).join(", "),
+          cover_image: info.imageLinks?.thumbnail
+            ? info.imageLinks.thumbnail.replace("http://", "https://")
+            : null,
+          book_length: info.pageCount || 0,
+          book_description: info.description || null,
+        };
+      });
+      setSearchResults(results);
       setSearchPerformed(true);
     } catch {
-      setSearchError("Could not reach the server. Please try again.");
+      setSearchError("Could not reach Google Books. Please try again.");
     } finally {
       setSearchLoading(false);
     }
@@ -182,7 +192,7 @@ export default function Bookshelf() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/home")}
-              className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium flex items-center gap-1"
+              className="bg-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-gray-100 transition-colors"
             >
               ← Back
             </button>
