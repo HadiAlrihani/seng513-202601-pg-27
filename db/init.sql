@@ -23,10 +23,11 @@ CREATE TABLE books (
     --ISBN-13 is only used on books post 2007, so both are stored if available
     isbn_10 TEXT UNIQUE,
     isbn_13 TEXT UNIQUE,
+    google_books_id TEXT UNIQUE,
     title TEXT NOT NULL,
     author TEXT NOT NULL,
     cover_image TEXT,
-    book_length INTEGER NOT NULL,
+    book_length INTEGER NOT NULL DEFAULT 0,
     book_description TEXT
 );
 
