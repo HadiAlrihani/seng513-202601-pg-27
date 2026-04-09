@@ -1,345 +1,211 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import Navbar from "../components/Navbar";
+import MobileNavbar from "../components/MobileNavbar";
 
 function FindClub() {
-  const userId = 1; // temporary until auth is fully connected
+  const userId = 1;
 
   const [clubs, setClubs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [genres, setGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState("All");
-  const [joiningClubId, setJoiningClubId] = useState(null);
   const [joinedClubIds, setJoinedClubIds] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [joinCode, setJoinCode] = useState("");
+  const [joiningClubId, setJoiningClubId] = useState(null);
   const [joiningByCode, setJoiningByCode] = useState(false);
 
   useEffect(() => {
-    const fetchClubs = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/bookclubs/public");
+    const load = async () => {
+      const [clubsRes, userRes] = await Promise.all([
+        fetch("http://localhost:5000/bookclubs/public"),
+        fetch(`http://localhost:5000/bookclubs/user/${userId}`),
+      ]);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch public clubs");
-        }
+      const clubsData = await clubsRes.json();
+      const userData = await userRes.json();
 
-        const data = await response.json();
-        setClubs(data);
-      } catch (err) {
-        console.error("Error fetching clubs:", err);
-        setError("Could not load book clubs.");
-      } finally {
-        setLoading(false);
-      }
+      setClubs(clubsData);
+      setJoinedClubIds(userData.map((c) => c.id));
     };
 
-    fetchClubs();
+    load();
   }, []);
 
   const handleJoin = async (clubId) => {
-    if (joiningClubId || joinedClubIds.includes(clubId)) {
-      return;
-    }
+    if (joiningClubId || joinedClubIds.includes(clubId)) return;
 
     setJoiningClubId(clubId);
 
-    try {
-      const response = await fetch("http://localhost:5000/bookclubs/join", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          clubId,
-        }),
-      });
+    const res = await fetch("http://localhost:5000/bookclubs/join", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, clubId }),
+    });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.error || "Failed to join club");
-        return;
-      }
-
-      setClubs((prevClubs) =>
-        prevClubs.map((club) =>
-          club.id === clubId
-            ? { ...club, number_members: club.number_members + 1 }
-            : club
-        )
-      );
-
-      setJoinedClubIds((prevIds) => [...prevIds, clubId]);
-      alert("Joined successfully");
-    } catch (err) {
-      console.error("Error joining club:", err);
-      alert("Something went wrong");
-    } finally {
+    if (!res.ok) {
+      alert("Failed to join");
       setJoiningClubId(null);
+      return;
     }
+
+    setJoinedClubIds((prev) => [...prev, clubId]);
+
+    setClubs((prev) =>
+      prev.map((c) =>
+        c.id === clubId
+          ? { ...c, number_members: c.number_members + 1 }
+          : c
+      )
+    );
+
+    setJoiningClubId(null);
   };
 
   const handleJoinByCode = async () => {
-    const trimmedCode = joinCode.trim();
-
-    if (!trimmedCode) {
-      alert("Please enter a club code");
-      return;
-    }
-
-    if (joiningByCode) {
-      return;
-    }
+    if (!joinCode || joiningByCode) return;
 
     setJoiningByCode(true);
 
-    try {
-      const response = await fetch("http://localhost:5000/bookclubs/join-by-code", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          code: trimmedCode,
-        }),
-      });
+    const res = await fetch("http://localhost:5000/bookclubs/join-by-code", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, code: joinCode }),
+    });
 
-      const data = await response.json();
+    const data = await res.json();
 
-      if (!response.ok) {
-        alert(data.error || "Failed to join private club");
-        return;
-      }
-
-      if (data.club) {
-        setJoinedClubIds((prevIds) =>
-          prevIds.includes(data.club.id) ? prevIds : [...prevIds, data.club.id]
-        );
-
-        setClubs((prevClubs) => {
-          const alreadyExists = prevClubs.some((club) => club.id === data.club.id);
-
-          if (alreadyExists) {
-            return prevClubs.map((club) =>
-              club.id === data.club.id
-                ? { ...club, number_members: club.number_members + 1 }
-                : club
-            );
-          }
-
-          return [...prevClubs, { ...data.club, number_members: data.club.number_members }];
-        });
-      }
-
-      setJoinCode("");
-      alert("Joined private club successfully");
-    } catch (err) {
-      console.error("Error joining private club:", err);
-      alert("Something went wrong");
-    } finally {
+    if (!res.ok) {
+      alert(data.error || "Failed");
       setJoiningByCode(false);
+      return;
     }
+
+    if (data.club) {
+      setJoinedClubIds((prev) => [...prev, data.club.id]);
+
+      setClubs((prev) => {
+        const exists = prev.find((c) => c.id === data.club.id);
+
+        if (exists) {
+          return prev.map((c) =>
+            c.id === data.club.id
+              ? { ...c, number_members: c.number_members + 1 }
+              : c
+          );
+        }
+
+        return [...prev, data.club];
+      });
+    }
+
+    setJoinCode("");
+    setJoiningByCode(false);
   };
 
-  const filteredClubs = useMemo(() => {
-    return clubs.filter((club) => {
-      const clubName = club.club_name?.toLowerCase() || "";
-      const bookTitle = club.book_title?.toLowerCase() || "";
-      const description = club.club_description?.toLowerCase() || "";
-      const search = searchTerm.toLowerCase();
-
-      const matchesSearch =
-        clubName.includes(search) ||
-        bookTitle.includes(search) ||
-        description.includes(search);
-
-      if (selectedGenre === "All") {
-        return matchesSearch;
-      }
-
-      return matchesSearch && bookTitle.includes(selectedGenre.toLowerCase());
-    });
-  }, [clubs, searchTerm, selectedGenre]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-neutral-800 px-4 py-8">
-        <div className="mx-auto max-w-6xl rounded-xl bg-zinc-50 p-8 text-center text-gray-700 shadow-lg">
-          Loading public book clubs...
-        </div>
-      </div>
+  const filtered = useMemo(() => {
+    return clubs.filter((c) =>
+      c.club_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-neutral-800 px-4 py-8">
-        <div className="mx-auto max-w-6xl rounded-xl bg-zinc-50 p-8 text-center text-red-600 shadow-lg">
-          {error}
-        </div>
-      </div>
-    );
-  }
+  }, [clubs, searchTerm]);
 
   return (
-    <div className="min-h-screen bg-neutral-800 px-4 py-8">
-      <div className="mx-auto min-h-screen max-w-6xl overflow-hidden rounded-xl bg-zinc-50 shadow-lg">
-        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#dfe9d9] text-sm font-semibold text-[#6b8b67]">
-              WC
-            </div>
-            <div className="text-2xl font-medium text-gray-900">
-              Wormly Connected
-            </div>
-          </div>
+    <div className="min-h-screen bg-zinc-50">
+      <Navbar />
 
-          <div className="text-2xl">👤</div>
-        </header>
+      <div className="max-w-7xl mx-auto px-4 py-6 pb-28 md-computer:pb-8">
 
-        <section className="flex flex-col gap-4 bg-[#cfe0c8] px-6 py-6 lg:flex-row lg:items-center lg:justify-between">
-          <h1 className="text-3xl font-medium tracking-wide text-gray-900">
-            FIND A CLUB
-          </h1>
+        {/* BACK ONLY */}
+        <Link to="/home" className="text-sm underline text-gray-600">
+          ← Back
+        </Link>
 
-          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+        {/* HEADER */}
+        <div className="bg-[#cfe0c8] p-6 rounded-xl mt-3">
+          <h1 className="text-3xl font-semibold">Find a Club</h1>
+
+          <div className="flex gap-3 mt-4 flex-wrap">
             <input
-              type="text"
-              placeholder="Enter a code or name"
-              value={searchTerm}
+              placeholder="Search clubs..."
+              className="px-4 py-2 rounded-lg bg-white"
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="min-w-[200px] rounded-xl border-none bg-[#e9eee6] px-4 py-3 text-sm text-gray-800 outline-none ring-0 placeholder:text-gray-500"
             />
 
-            <select
-              value={selectedGenre}
-              onChange={(e) => setSelectedGenre(e.target.value)}
-              className="min-w-[200px] rounded-xl border-none bg-[#e9eee6] px-4 py-3 text-sm text-gray-800 outline-none ring-0"
+            <input
+              placeholder="Private code"
+              className="px-4 py-2 rounded-lg bg-white"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+            />
+
+            <button
+              onClick={handleJoinByCode}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg"
             >
-              <option value="All">Select a genre</option>
-              {genres.map((genre) => (
-                <option key={genre.id} value={genre.genre_name}>
-                  {genre.genre_name}
-                </option>
-              ))}
-            </select>
+              {joiningByCode ? "Joining..." : "Join by Code"}
+            </button>
           </div>
-        </section>
+        </div>
 
-        <section className="border-b border-gray-200 bg-white px-6 py-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-lg font-medium text-gray-900">
-                Join a private club
-              </h2>
-              <p className="mt-1 text-sm text-gray-600">
-                Enter a private club code to join directly.
-              </p>
-            </div>
+        {/* TITLE + VIEW ALL */}
+        <div className="flex justify-between items-center mt-6 mb-4">
+          <h2 className="text-2xl">Recommended Clubs</h2>
 
-            <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
-              <input
-                type="text"
-                placeholder="Enter private club code"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
-                className="min-w-[220px] rounded-xl border-none bg-[#e9eee6] px-4 py-3 text-sm text-gray-800 outline-none ring-0 placeholder:text-gray-500"
-              />
+          <Link
+            to="/my-clubs"
+            className="text-sm underline text-gray-600"
+          >
+            View all
+          </Link>
+        </div>
 
-              <button
-                onClick={handleJoinByCode}
-                disabled={joiningByCode}
-                className={`rounded-xl px-4 py-3 text-sm font-medium ${
-                  joiningByCode
-                    ? "cursor-not-allowed bg-gray-300 text-gray-700"
-                    : "bg-[#6b8b67] text-white hover:bg-[#5c7959]"
-                }`}
+        {/* CLUBS */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((club) => {
+            const isFull = club.number_members >= club.max_members;
+            const isJoined = joinedClubIds.includes(club.id);
+
+            return (
+              <div
+                key={club.id}
+                className="bg-[#b8d1b0] p-5 rounded-xl flex flex-col justify-between"
               >
-                {joiningByCode ? "Joining..." : "Join by Code"}
-              </button>
-            </div>
-          </div>
-        </section>
+                <div>
+                  <h3 className="font-semibold">{club.book_title}</h3>
+                  <p className="text-sm mt-1">
+                    • {club.number_members} members
+                  </p>
 
-        <section className="px-6 py-8">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <h2 className="text-3xl font-medium text-gray-900">
-              Recommended Clubs
-            </h2>
-              <Link to="/my-clubs" className="text-sm text-gray-700 underline">
-              View all
-            </Link>
-          </div>
+                  <p className="mt-2 font-medium">{club.club_name}</p>
+                  <p className="text-sm mt-1">
+                    {club.club_description}
+                  </p>
+                </div>
 
-          {filteredClubs.length === 0 ? (
-            <div className="rounded-xl bg-white p-8 text-center text-gray-600">
-              No public book clubs found.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {filteredClubs.map((club) => {
-                const isFull = club.number_members >= club.max_members;
-                const isJoining = joiningClubId === club.id;
-                const isJoined = joinedClubIds.includes(club.id);
-                const shouldDisable = isFull || isJoining || isJoined;
-
-                let buttonText = "Join";
-                if (isFull) buttonText = "Full";
-                else if (isJoining) buttonText = "Joining...";
-                else if (isJoined) buttonText = "Joined";
-
-                let buttonClass = "bg-white text-gray-900 hover:bg-gray-100";
-
-                if (isFull) {
-                  buttonClass = "cursor-not-allowed bg-red-400 text-white";
-                } else if (isJoined) {
-                  buttonClass = "cursor-not-allowed bg-green-600 text-white";
-                } else if (isJoining) {
-                  buttonClass = "cursor-not-allowed bg-gray-300 text-gray-700";
-                }
-
-                return (
-                  <div
-                    key={club.id}
-                    className="flex min-h-[190px] flex-col justify-between rounded-2xl bg-[#b8d1b0] p-5"
+                <div className="flex justify-end mt-4">
+                  <button
+                    disabled={isFull || isJoined}
+                    onClick={() => handleJoin(club.id)}
+                    className={`px-4 py-2 rounded ${
+                      isFull
+                        ? "bg-red-400 text-white"
+                        : isJoined
+                        ? "bg-green-600 text-white"
+                        : "bg-white"
+                    }`}
                   >
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {club.book_title}
-                      </h3>
-
-                      <p className="mt-1 text-sm text-gray-700">
-                        • {club.number_members} members
-                      </p>
-
-                      <p className="mt-3 text-sm font-semibold text-[#223025]">
-                        {club.club_name}
-                      </p>
-
-                      <p className="mt-2 text-sm leading-6 text-[#38443b]">
-                        {club.club_description}
-                      </p>
-                    </div>
-
-                    <div className="mt-5 flex justify-end">
-                      <button
-                        disabled={shouldDisable}
-                        onClick={() => handleJoin(club.id)}
-                        className={`rounded-lg px-4 py-2 text-sm font-medium ${buttonClass}`}
-                      >
-                        {buttonText}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
+                    {isFull ? "Full" : isJoined ? "Joined" : "Join"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      <MobileNavbar />
     </div>
   );
 }
