@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
+import HomeSidebar from "../components/HomeSidebar";
 
 import logout from "../assets/logout.png";
 import settings from "../assets/settings.png";
@@ -30,14 +31,20 @@ export default function Profile() {
     return  (
         <>
         <Navbar />
-        <div className="flex flex-col h-[90vh] md-computer:h-[85vh]">
-            <div className="flex justify-between p-[2vh] h-[50vh]"> 
+        <div className="flex flex-col h-[90vh] md-computer:h-[85vh] md-computer:flex-row">
+            <div className="hidden md-computer:block">
+                <HomeSidebar />
+            </div>
+            
+            <div className="flex justify-between p-[2vh] h-[50vh] 
+            md-computer:h-[85vh] md-computer:px-[6vw] md-computer:flex-col md-computer:justify-start"> 
+                <h1 className="hidden md-computer:block font-italiana text-7xl text-center">Profile</h1>
                 <div className="flex items-start md-computer:hidden">
                     <button className="w-[4vh] h-[4vh]">
                         <img src={settings} />
                     </button>
                 </div>
-                <div className="flex w-full flex-col items-center justify-end gap-2">
+                <div className="flex w-full flex-col items-center justify-end gap-2 md-computer:mt-20">
                     <div className="r w-[30vh] h-[30vh] rounded-full bg-[#E7E7E7]/100 overflow-hidden">
                         <img src={profile_icon} className="w-full h-full object-cover" />
                     </div>
@@ -49,6 +56,23 @@ export default function Profile() {
                         <img src={logout} />
                     </button>
                 </div>
+            </div>
+
+            <div className="hidden md-computer:flex flex-col justify-center w-full pr-[15vw]">
+                <button className="flex py-4 border-b-2 border-black">
+                    <h1 className="text-xl">Username:</h1>
+                    <h1 className="px-2 text-xl text-stone-500">{username}</h1>
+                </button>
+                <button className="flex py-4 border-b-2 border-black">
+                    <h1 className="text-xl">Email:</h1>
+                    <h1 className="px-2 text-xl text-stone-500">{email}</h1>
+                </button>
+                <button className="flex py-4 border-b-2 border-black">
+                    <h1 className="text-xl">Reset Password</h1>
+                </button>
+                <button className="flex py-4 border-b-2 border-black">
+                    <h1 className="text-xl text-red-600">Deactivate Account</h1>
+                </button>
             </div>
             
             <div className="flex flex-1 items-center md-computer:hidden">
