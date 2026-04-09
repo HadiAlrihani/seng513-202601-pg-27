@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 import HomeSidebar from "../components/HomeSidebar";
@@ -5,6 +8,14 @@ import HomeSidebar from "../components/HomeSidebar";
 import book_with_worm from "../assets/book_with_worm.png";
 
 export default function Homepage() {
+    const navigate = useNavigate();
+    const username = localStorage.getItem("username");
+    useEffect(() => {
+    if (!username) {
+      navigate("/"); // force to login page
+    }
+  }, [username, navigate]);
+
     return  (
         <>
         <Navbar />
@@ -17,7 +28,7 @@ export default function Homepage() {
             <HomeSidebar />
             <div className="flex flex-1 flex-col justify-evenly">
                 <h1 className="font-inter text-2xl md-computer:text-3xl text-center">
-                    Welcome, user...
+                    Welcome, {username}!
                 </h1>
                 <div className="flex justify-evenly">
                     <div className="flex flex-1 flex-col items-center">

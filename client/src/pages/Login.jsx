@@ -26,17 +26,22 @@ export default function Login() {
 
             const data = await response.json();
 
+            // set users username and session token, then nav to homepage
             if (response.ok) {
-                console.log("Login successful: ", data)
+                console.log("Login successful: ", data);
+
+                localStorage.setItem("username", data.username);
+                localStorage.setItem("session_token", data.token);
+
                 navigate("/home");
             }
             else {
-                console.log("Login failed: ", data.message)
+                console.log("Login failed: ", data.message);
             }
 
         }
         catch (err) {
-            console.error("Error: ", err)
+            console.error("Error: ", err);
         }
     }
 
