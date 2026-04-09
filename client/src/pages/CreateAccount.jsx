@@ -29,7 +29,8 @@ export default function CreateAccount() {
             if (response.ok) {
                 console.log("Account created:", data);
 
-                localStorage.setItem("username", data.user.username);
+                localStorage.setItem("wormly_username", data.user.username);
+                localStorage.setItem("wormly_email", data.user.email);
                 localStorage.setItem("session_token", data.token);
                 navigate("/home");
             }
