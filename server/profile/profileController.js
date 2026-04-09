@@ -32,7 +32,33 @@ export const updateUsername = async (req, res) => {
 };
 
 export const updateEmail = async (req, res) => {
-    console.log("placeholder")
+    const { user_id, new_email } = req.body;
+
+    try {
+        //check if the  requested username already exists
+        const existing_email = await pool.query(
+            "SELECT 1 FROM users WHERE email = $1 AND id != $2",
+            [new_email, user_id]
+        );
+
+        if (existing_email.rows.length > 0) {
+            return res.status(400).json({ error: "Email already in use"});
+        }
+
+        //update username for this user in db
+        const updated_user = await pool.query(
+            "UPDATE users SET email = $1 WHERE id = $2 RETURNING email",
+            [new_email, user_id]
+        );
+
+        res.status(200).json({
+            message: "email updated",
+            new_email: updated_user.rows[0].email });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "server error"})
+    }
 };
 
 export const resetPassword = async (req, res) => {
