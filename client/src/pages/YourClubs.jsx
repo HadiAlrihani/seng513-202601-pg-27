@@ -14,28 +14,28 @@ function YourClubs() {
     const [errorMessage, setErrorMessage] = useState("");
     const [leavingClubId, setLeavingClubId] = useState(null);
 
-    useEffect(() => {
-        const loadUserClubs = async () => {
-            try {
-                setIsLoading(true);
-                setErrorMessage("");
+    const loadUserClubs = async () => {
+        try {
+            setIsLoading(true);
+            setErrorMessage("");
 
-                const response = await fetch(`http://localhost:5000/bookclubs/user/${userId}`);
-                const data = await response.json();
+            const response = await fetch(`http://localhost:5000/bookclubs/user/${userId}`);
+            const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(data.error || "Failed to load your clubs.");
-                }
-
-                setClubs(data);
-            } catch (error) {
-                console.error("Error loading user clubs:", error);
-                setErrorMessage(error.message || "Unable to load your clubs.");
-            } finally {
-                setIsLoading(false);
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to load your clubs.");
             }
-        };
 
+            setClubs(data);
+        } catch (error) {
+            console.error("Error loading user clubs:", error);
+            setErrorMessage(error.message || "Unable to load your clubs.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         loadUserClubs();
     }, [userId]);
 
@@ -61,7 +61,7 @@ function YourClubs() {
                 return;
             }
 
-            setClubs((prevClubs) => prevClubs.filter((club) => club.id !== clubId));
+            await loadUserClubs();
         } catch (error) {
             console.error("Error leaving club:", error);
             alert("Something went wrong while leaving the club.");
@@ -85,6 +85,13 @@ function YourClubs() {
                         Continue reading, track your progress, and join spoiler-safe discussions.
                     </p>
                 </div>
+
+                <button
+                    onClick={loadUserClubs}
+                    className="mb-5 px-4 py-2 rounded-2xl bg-white border border-[#c8d5c3] hover:bg-[#f7faf6] transition"
+                >
+                    Refresh Clubs
+                </button>
 
                 {isLoading ? (
                     <div className="bg-white/80 border border-[#dde6d8] rounded-[24px] p-6">
@@ -130,7 +137,8 @@ function YourClubs() {
                                         <div className="flex flex-wrap gap-2 mt-4 text-sm">
                                             <span className="bg-white/75 border border-[#d4ddd0] rounded-full px-3 py-1">
                                                 Current checkpoint:{" "}
-                                                {club.progress_checkpoint
+                                                {club.progress_checkpoint !== null &&
+                                                club.progress_checkpoint !== undefined
                                                     ? club.progress_checkpoint
                                                     : "Not started"}
                                             </span>
