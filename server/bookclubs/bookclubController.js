@@ -192,3 +192,23 @@ export const leaveClub = async (req, res) => {
     return res.status(500).json({ error: "Failed to leave club" });
   }
 };
+
+export const createClub = async (req, res) => {
+  const { club_name, book_title, club_description, max_members, visibility} = req.body;
+
+
+  try {
+    const clubResult = await pool.query(
+      `INSERT INTO bookclubs (club_name, book_title, club_description, number_members, max_members, visibility)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING*`,
+      [club_name, book_title, club_description, 1, max_members, visibility || "public"]
+    );
+
+   return res.status(200).json(clubResult.rows[0]);
+
+  } catch (error) {
+    console.error("Error creating clubs:", error);
+    return res.status(500).json({ error: "Failed to create club" });
+  }
+};

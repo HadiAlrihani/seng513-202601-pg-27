@@ -13,7 +13,7 @@ function YourClubs() {
     const [clubs, setClubs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
-    const [leavingClubId, setLeavingClubId] = useState(null);
+    const [leavingClubId, setLeavingClubId] = useState("");
 
     const loadUserClubs = async () => {
         if (!userId) {
@@ -80,6 +80,7 @@ function YourClubs() {
             setLeavingClubId(null);
         }
     };
+
 
     return (
         <div className="min-h-screen bg-zinc-50">

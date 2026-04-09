@@ -9,10 +9,12 @@ function CreateClub() {
 
     const [clubName, setClubName] = useState("");
     const [bookTitle, setBookTitle] = useState("");
-    const [clubType, setClubType] = useState("");
+    const [visibility, setVisibility] = useState("");
     const [clubDescription, setClubDescription] = useState("");
     const [numMembers, setNumMembers] = useState("");
     const [loading, setLoading] = useState(false);
+    const [maxMembers, setMaxMembers] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleCreate = async () => {
           
@@ -21,25 +23,24 @@ function CreateClub() {
             
             const userId = localStorage.getItem("userId");
 
-            const response = await fetch("http://localhost:5000/users/register", {
+            const response = await fetch("http://localhost:5000/bookclubs/club", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ clubName, bookTitle, clubDescription, userId}),
+                body: JSON.stringify({ club_name: clubName, book_title: bookTitle, club_description: clubDescription, num_members: 1, max_members: maxMembers, visibility: "public"}),
             });
-            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || "Failed to create club.");
-                return;
+                const text = await response.text();
+                throw new Error(text|| "Failed to create club.");
             }
+            const data = await response.json();
 
-            alert("Club successfully created!")
             navigate("/my-clubs");
         } catch (error) {
             console.error("Error creating club:", error);
             setErrorMessage(error.message || "Unable to create club.");
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -80,19 +81,10 @@ function CreateClub() {
                     <label className="block mb-4 font-medium">
                     Club Type
                     </label>
-                    <button
-                        onClick={() => setClubType("public")}
-                        className="flex-1 px-4 py-2 rounded-2xl bg-[#a8c49f] hover:bg-[#99b890] transition"
-                    >
-                        Public
-                    </button>
-
-                    <button
-                          onClick={() => setClubType("private")}
-                          className="flex-1 px-4 py-2 rounded-2xl bg-[#a8c49f] hover:bg-[#99b890] transition"
-                    >
-                        Private
-                    </button>
+                    <select value={visibility} onChange={(e) => setVisibility(e.target.value)}>
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                    </select>
                 </div>
 
                 <div className= "mb-4 mt-4">

@@ -7,7 +7,7 @@ import profileRoutes from "./profile/profileRoutes.js";
 
 import bookshelfRoutes from "./bookshelf/bookshelfRoutes.js";
 import discussionRoutes from "./discussions/discussionRoutes.js";
-
+import checkpointRoutes from "./checkpoints/checkPointRoutes.js";
 const app = express();
 const PORT = 5000;
 
@@ -36,6 +36,8 @@ app.use("/bookclubs", bookclubRoutes);
 app.use("/profile", profileRoutes);
 app.use("/bookshelf", bookshelfRoutes);
 app.use("/discussions", discussionRoutes);
+app.use("/checkpoints", checkpointRoutes);
+
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at http://localhost:${PORT}`);
