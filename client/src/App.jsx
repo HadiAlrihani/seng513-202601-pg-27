@@ -8,6 +8,7 @@ import SelectGenres from './pages/selectGenres';
 import Homepage from './pages/Homepage';
 import FindClub from "./pages/FindClub";
 import Profile from './pages/Profile';
+import Bookshelf from './pages/Bookshelf';
 
 function App() {
 
@@ -21,6 +22,7 @@ function App() {
           <Route path='/home' element={ <Homepage /> } />
           <Route path='/profile' element={ <Profile />} />
           <Route path="/clubs" element={<FindClub />} />
+          <Route path="/bookshelf" element={<Bookshelf />} />
         </Routes>
       </div>
     </Router>

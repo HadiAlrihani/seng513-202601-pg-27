@@ -14,10 +14,17 @@ export default function MobileNavbar() {
                     <img className="object-contain" src={home_icon} alt="Wormly logo" />
                 </button>
             </div>
+            {/* Bookshelf link — middle of the three nav items */}
             <div className="flex-1 flex justify-center items-center border-l-2 border-black">
-                <button onClick={() => navigate('/profile')} 
+                <button onClick={() => navigate('/bookshelf')}
+                className="flex w-full max-h-full justify-center items-center text-2xl">
+                    📚
+                </button>
+            </div>
+            <div className="flex-1 flex justify-center items-center border-l-2 border-black">
+                <button onClick={() => navigate('/profile')}
                 className="flex w-full max-h-full justify-center">
-                    <img className="object-contain" src={profile_icon} alt="Wormly logo" />
+                    <img className="object-contain" src={profile_icon} alt="Profile" />
                 </button>
             </div>
         </div>
