@@ -196,13 +196,19 @@ export const leaveClub = async (req, res) => {
 export const createClub = async (req, res) => {
   const { club_name, book_title, club_description, max_members, visibility} = req.body;
 
+  const maxMembersInt = parseInt(max_members);
+
+if(isNaN(maxMembersInt)){
+  return res.status(400).json({error: "must be a number"})
+}
+
 
   try {
     const clubResult = await pool.query(
       `INSERT INTO bookclubs (club_name, book_title, club_description, number_members, max_members, visibility)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING*`,
-      [club_name, book_title, club_description, 1, max_members, visibility || "public"]
+      [club_name, book_title, club_description, 1, maxMembersInt, visibility || "public"]
     );
 
    return res.status(200).json(clubResult.rows[0]);

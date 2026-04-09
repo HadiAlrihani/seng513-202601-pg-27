@@ -26,7 +26,7 @@ function CreateClub() {
             const response = await fetch("http://localhost:5000/bookclubs/club", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ club_name: clubName, book_title: bookTitle, club_description: clubDescription, num_members: 1, max_members: maxMembers, visibility: "public"}),
+                body: JSON.stringify({ club_name: clubName, book_title: bookTitle, club_description: clubDescription, num_members: 1, max_members: Number(maxMembers), visibility: "public"}),
             });
 
             if (!response.ok) {
@@ -106,10 +106,10 @@ function CreateClub() {
                     </label>
 
                 <input
-                    type="text"
+                    type="number"
                     placeholder="max members"
-                    value = {numMembers}
-                    onChange={(e) => setNumMembers(e.target.value)}
+                    value = {maxMembers}
+                    onChange={(e) => setMaxMembers(e.target.value)}
                     className="w-full p-3 border rounded-lg"
                 />
                 </div>
