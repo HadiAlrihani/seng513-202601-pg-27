@@ -62,5 +62,35 @@ export const updateEmail = async (req, res) => {
 };
 
 export const resetPassword = async (req, res) => {
-    console.log("placeholder")
+    const { user_id, old_password, new_password } = req.body;
+
+    try {
+
+        // ensure the old password is correct
+        const stored_hash = await pool.query(
+            "SELECT user_password FROM users WHERE id = $1",
+            [user_id]
+        );
+
+        const isCorrectPassword = await bcrypt.compare(old_password, stored_hash.rows[0].user_password);
+
+        if (!isCorrectPassword) {
+            res.status(400).json({ error: "Current password entered is incorrect" });
+        }
+
+        // update password with hash of new password
+        const new_hash = await bcrypt.hash(new_password, 10);
+
+        //update username for this user in db
+        const updated_user = await pool.query(
+            "UPDATE users SET user_password = $1 WHERE id = $2 RETURNING user_password",
+            [new_hash, user_id]
+        );
+
+        res.status(200).json({ message: "password updated" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "server error"})
+    }
 };

@@ -12,6 +12,6 @@ router.patch("/update-username", updateUsername);
 router.patch("/update-email", updateEmail);
 
 // reset password route
-router.patch("reset-password", resetPassword);
+router.patch("/reset-password", resetPassword);
 
 export default router;
