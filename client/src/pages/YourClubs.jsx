@@ -1,10 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import MobileNavbar from "../components/MobileNavbar";
+import MobileNavbar from "../components/MobileNavbar"
 
 function YourClubs() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const storedUserId =
         localStorage.getItem("userId") || localStorage.getItem("wormly_id");
@@ -43,7 +44,7 @@ function YourClubs() {
 
     useEffect(() => {
         loadUserClubs();
-    }, [userId]);
+    }, [userId, location.state]);
 
     const handleLeave = async (clubId) => {
         if (!userId) {

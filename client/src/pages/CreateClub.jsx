@@ -35,7 +35,7 @@ function CreateClub() {
             }
             const data = await response.json();
 
-            navigate("/my-clubs");
+            navigate("/my-clubs", {state: {newClub: data}});
         } catch (error) {
             console.error("Error creating club:", error);
             setErrorMessage(error.message || "Unable to create club.");
