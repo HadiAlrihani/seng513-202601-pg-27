@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-
+import { Link } from "react-router-dom";
 function FindClub() {
   const userId = 1; // temporary until auth is fully connected
 
@@ -268,9 +268,9 @@ function FindClub() {
             <h2 className="text-3xl font-medium text-gray-900">
               Recommended Clubs
             </h2>
-            <button className="text-sm text-gray-700 underline">
+              <Link to="/my-clubs" className="text-sm text-gray-700 underline">
               View all
-            </button>
+            </Link>
           </div>
 
           {filteredClubs.length === 0 ? (

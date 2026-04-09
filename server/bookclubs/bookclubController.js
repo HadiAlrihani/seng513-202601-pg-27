@@ -122,3 +122,70 @@ export const joinClubByCode = async (req, res) => {
     return res.status(500).json({ error: "Failed to join club" });
   }
 };
+
+export const getUserClubs = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT b.*
+      FROM bookclubs b
+      JOIN bookclub_members m ON b.id = m.club_id
+      WHERE m.user_id = $1
+      ORDER BY b.id ASC
+      `,
+      [userId]
+    );
+
+    return res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Error fetching user clubs:", error);
+    return res.status(500).json({ error: "Failed to fetch joined clubs" });
+  }
+};
+
+export const leaveClub = async (req, res) => {
+  const { userId, clubId } = req.body;
+
+  if (!userId || !clubId) {
+    return res.status(400).json({ error: "userId and clubId are required" });
+  }
+
+  try {
+    const existingMemberResult = await pool.query(
+      "SELECT * FROM bookclub_members WHERE user_id = $1 AND club_id = $2",
+      [userId, clubId]
+    );
+
+    if (existingMemberResult.rows.length === 0) {
+      return res.status(404).json({ error: "Membership not found" });
+    }
+
+    await pool.query(
+      "DELETE FROM bookclub_members WHERE user_id = $1 AND club_id = $2",
+      [userId, clubId]
+    );
+
+    await pool.query(
+      `
+      UPDATE bookclubs
+      SET number_members = CASE
+        WHEN number_members > 0 THEN number_members - 1
+        ELSE 0
+      END
+      WHERE id = $1
+      `,
+      [clubId]
+    );
+
+    return res.status(200).json({ message: "Left club successfully" });
+  } catch (error) {
+    console.error("Error leaving club:", error);
+    return res.status(500).json({ error: "Failed to leave club" });
+  }
+};
