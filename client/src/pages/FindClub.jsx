@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 function FindClub() {
-  const userId = 1; // temporary until auth is connected
+  const userId = 1; // temporary until auth is fully connected
 
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,18 +11,20 @@ function FindClub() {
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [joiningClubId, setJoiningClubId] = useState(null);
   const [joinedClubIds, setJoinedClubIds] = useState([]);
+  const [joinCode, setJoinCode] = useState("");
+  const [joiningByCode, setJoiningByCode] = useState(false);
 
   useEffect(() => {
     const fetchClubs = async () => {
       try {
-        const clubsResponse = await fetch("http://localhost:5000/bookclubs/public");
+        const response = await fetch("http://localhost:5000/bookclubs/public");
 
-        if (!clubsResponse.ok) {
-          throw new Error("Failed to fetch public book clubs");
+        if (!response.ok) {
+          throw new Error("Failed to fetch public clubs");
         }
 
-        const clubsData = await clubsResponse.json();
-        setClubs(clubsData);
+        const data = await response.json();
+        setClubs(data);
       } catch (err) {
         console.error("Error fetching clubs:", err);
         setError("Could not load book clubs.");
@@ -68,13 +70,76 @@ function FindClub() {
         )
       );
 
-      setJoinedClubIds((prev) => [...prev, clubId]);
+      setJoinedClubIds((prevIds) => [...prevIds, clubId]);
       alert("Joined successfully");
     } catch (err) {
       console.error("Error joining club:", err);
       alert("Something went wrong");
     } finally {
       setJoiningClubId(null);
+    }
+  };
+
+  const handleJoinByCode = async () => {
+    const trimmedCode = joinCode.trim();
+
+    if (!trimmedCode) {
+      alert("Please enter a club code");
+      return;
+    }
+
+    if (joiningByCode) {
+      return;
+    }
+
+    setJoiningByCode(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/bookclubs/join-by-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          code: trimmedCode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Failed to join private club");
+        return;
+      }
+
+      if (data.club) {
+        setJoinedClubIds((prevIds) =>
+          prevIds.includes(data.club.id) ? prevIds : [...prevIds, data.club.id]
+        );
+
+        setClubs((prevClubs) => {
+          const alreadyExists = prevClubs.some((club) => club.id === data.club.id);
+
+          if (alreadyExists) {
+            return prevClubs.map((club) =>
+              club.id === data.club.id
+                ? { ...club, number_members: club.number_members + 1 }
+                : club
+            );
+          }
+
+          return [...prevClubs, { ...data.club, number_members: data.club.number_members }];
+        });
+      }
+
+      setJoinCode("");
+      alert("Joined private club successfully");
+    } catch (err) {
+      console.error("Error joining private club:", err);
+      alert("Something went wrong");
+    } finally {
+      setJoiningByCode(false);
     }
   };
 
@@ -90,7 +155,9 @@ function FindClub() {
         bookTitle.includes(search) ||
         description.includes(search);
 
-      if (selectedGenre === "All") return matchesSearch;
+      if (selectedGenre === "All") {
+        return matchesSearch;
+      }
 
       return matchesSearch && bookTitle.includes(selectedGenre.toLowerCase());
     });
@@ -161,6 +228,41 @@ function FindClub() {
           </div>
         </section>
 
+        <section className="border-b border-gray-200 bg-white px-6 py-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">
+                Join a private club
+              </h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Enter a private club code to join directly.
+              </p>
+            </div>
+
+            <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+              <input
+                type="text"
+                placeholder="Enter private club code"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+                className="min-w-[220px] rounded-xl border-none bg-[#e9eee6] px-4 py-3 text-sm text-gray-800 outline-none ring-0 placeholder:text-gray-500"
+              />
+
+              <button
+                onClick={handleJoinByCode}
+                disabled={joiningByCode}
+                className={`rounded-xl px-4 py-3 text-sm font-medium ${
+                  joiningByCode
+                    ? "cursor-not-allowed bg-gray-300 text-gray-700"
+                    : "bg-[#6b8b67] text-white hover:bg-[#5c7959]"
+                }`}
+              >
+                {joiningByCode ? "Joining..." : "Join by Code"}
+              </button>
+            </div>
+          </div>
+        </section>
+
         <section className="px-6 py-8">
           <div className="mb-8 flex items-center justify-between gap-4">
             <h2 className="text-3xl font-medium text-gray-900">
@@ -188,8 +290,7 @@ function FindClub() {
                 else if (isJoining) buttonText = "Joining...";
                 else if (isJoined) buttonText = "Joined";
 
-                let buttonClass =
-                  "bg-white text-gray-900 hover:bg-gray-100";
+                let buttonClass = "bg-white text-gray-900 hover:bg-gray-100";
 
                 if (isFull) {
                   buttonClass = "cursor-not-allowed bg-red-400 text-white";
