@@ -9,7 +9,7 @@ import book_with_worm from "../assets/book_with_worm.png";
 
 export default function Homepage() {
     const navigate = useNavigate();
-    const username = localStorage.getItem("username");
+    const username = localStorage.getItem("wormly_username");
     useEffect(() => {
     if (!username) {
       navigate("/"); // force to login page
