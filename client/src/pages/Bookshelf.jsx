@@ -1,0 +1,548 @@
+// Bookshelf page — lets users track books across three reading states:
+// "To Read", "Reading", and "Finished".
+// Books can be added, have their status changed, or be removed.
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import MobileNavbar from "../components/MobileNavbar";
+
+// Tab definitions in display order
+const TABS = [
+  { key: "reading", label: "Reading" },
+  { key: "to_read", label: "To Read" },
+  { key: "finished", label: "Finished" },
+];
+
+export default function Bookshelf() {
+  const navigate = useNavigate();
+
+  // Shelf data grouped by read_status
+  const [shelf, setShelf] = useState({ to_read: [], reading: [], finished: [] });
+  const [activeTab, setActiveTab] = useState("reading");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Add book form state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addStatus, setAddStatus] = useState("to_read");
+  const [addError, setAddError] = useState("");
+
+  // Error for status change / remove failures
+  const [actionError, setActionError] = useState("");
+
+  // Track which book card has its review section open, and the draft text
+  const [expandedBookId, setExpandedBookId] = useState(null);
+  const [reviewDraft, setReviewDraft] = useState("");
+
+  // Google Books search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [selectedBook, setSelectedBook] = useState(null);
+
+  // Fetch the user's shelf on mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/");
+      return;
+    }
+
+    fetch("http://localhost:5000/bookshelf/", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Auth failed");
+        const shelfData = await res.json();
+        setShelf(shelfData);
+      })
+      .catch(() => setError("Could not load bookshelf. Please try again."))
+      .finally(() => setLoading(false));
+  }, [navigate]);
+
+  // Search Open Library via the backend. The frontend waits for one response.
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const token = localStorage.getItem("token");
+    setSearchLoading(true);
+    setSearchPerformed(false);
+    setSearchError("");
+    setSelectedBook(null);
+    setSearchResults([]);
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/bookshelf/search?q=${encodeURIComponent(searchQuery)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await res.json();
+      if (data.length === 0) {
+        setSearchError(`No results found for "${searchQuery}". Try a different title or author.`);
+      } else {
+        setSearchResults(data);
+        setSearchPerformed(true);
+      }
+    } catch {
+      setSearchError("Could not reach the server. Please try again.");
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Add the selected search result to the shelf via POST /bookshelf/from-google
+  const handleAddBook = async (e) => {
+    e.preventDefault();
+    if (!selectedBook) return;
+    const token = localStorage.getItem("token");
+    setAddError("");
+
+    try {
+      const res = await fetch("http://localhost:5000/bookshelf/from-google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ googleBook: selectedBook, read_status: addStatus }),
+      });
+
+      if (res.status === 409) {
+        setAddError("This book is already on your shelf.");
+        return;
+      }
+
+      if (!res.ok) {
+        setAddError("Failed to add book. Please try again.");
+        return;
+      }
+
+      const newEntry = await res.json();
+      setShelf((prev) => ({
+        ...prev,
+        [newEntry.read_status]: [...prev[newEntry.read_status], newEntry],
+      }));
+      setShowAddForm(false);
+      setSearchQuery("");
+      setSearchResults([]);
+      setSelectedBook(null);
+      setAddError("");
+      setActiveTab(newEntry.read_status);
+    } catch {
+      setAddError("Failed to add book. Please try again.");
+    }
+  };
+
+  const handleCancelAdd = () => {
+    setShowAddForm(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchPerformed(false);
+    setSearchError("");
+    setSelectedBook(null);
+    setAddError("");
+  };
+
+  // Move a book to a different status bucket via PATCH /bookshelf/:bookId
+  const handleStatusChange = async (bookId, newStatus) => {
+    const token = localStorage.getItem("token");
+    setActionError("");
+
+    try {
+      const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ read_status: newStatus }),
+      });
+
+      if (!res.ok) {
+        setActionError("Failed to update status. Please try again.");
+        return;
+      }
+
+      setShelf((prev) => {
+        const all = [...prev.to_read, ...prev.reading, ...prev.finished];
+        const updated = all.map((b) =>
+          b.book_id === bookId ? { ...b, read_status: newStatus } : b
+        );
+        return {
+          to_read: updated.filter((b) => b.read_status === "to_read"),
+          reading: updated.filter((b) => b.read_status === "reading"),
+          finished: updated.filter((b) => b.read_status === "finished"),
+        };
+      });
+    } catch {
+      setActionError("Failed to update status. Please try again.");
+    }
+  };
+
+  // Save a review for a book via PATCH /bookshelf/:bookId
+  const handleSaveReview = async (bookId, reviewText) => {
+    const token = localStorage.getItem("token");
+    setActionError("");
+
+    try {
+      const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ review: reviewText }),
+      });
+
+      if (!res.ok) {
+        setActionError("Failed to save review. Please try again.");
+        return;
+      }
+
+      const now = new Date().toISOString();
+      setShelf((prev) => {
+        const update = (list) =>
+          list.map((b) =>
+            b.book_id === bookId ? { ...b, review: reviewText, reviewed_at: now } : b
+          );
+        return {
+          to_read: update(prev.to_read),
+          reading: update(prev.reading),
+          finished: update(prev.finished),
+        };
+      });
+    } catch {
+      setActionError("Failed to save review. Please try again.");
+    }
+  };
+
+  // Update the rating for a book via PATCH /bookshelf/:bookId
+  const handleRating = async (bookId, newRating) => {
+    const token = localStorage.getItem("token");
+    setActionError("");
+
+    try {
+      const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating: newRating }),
+      });
+
+      if (!res.ok) {
+        setActionError("Failed to update rating. Please try again.");
+        return;
+      }
+
+      // Update rating in local shelf state
+      setShelf((prev) => {
+        const update = (list) =>
+          list.map((b) => (b.book_id === bookId ? { ...b, rating: newRating } : b));
+        return {
+          to_read: update(prev.to_read),
+          reading: update(prev.reading),
+          finished: update(prev.finished),
+        };
+      });
+    } catch {
+      setActionError("Failed to update rating. Please try again.");
+    }
+  };
+
+  // Remove a book from the shelf via DELETE /bookshelf/:bookId
+  const handleRemove = async (bookId) => {
+    const token = localStorage.getItem("token");
+    setActionError("");
+
+    try {
+      const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        setActionError("Failed to remove book. Please try again.");
+        return;
+      }
+
+      setShelf((prev) => ({
+        to_read: prev.to_read.filter((b) => b.book_id !== bookId),
+        reading: prev.reading.filter((b) => b.book_id !== bookId),
+        finished: prev.finished.filter((b) => b.book_id !== bookId),
+      }));
+    } catch {
+      setActionError("Failed to remove book. Please try again.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-neutral-800 px-4 py-8 pb-[12vh] md-computer:pb-8">
+      <Navbar />
+
+      <div className="mx-auto max-w-5xl mt-4 rounded-xl bg-zinc-50 shadow-lg overflow-hidden">
+
+        {/* Page header with title and add-book toggle */}
+        <header className="bg-[#cfe0c8] px-4 py-4 md:px-6 md:py-6 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
+            <button
+              onClick={() => navigate("/home")}
+              className="bg-white rounded-lg px-2 py-1.5 md:px-3 text-sm font-medium hover:bg-gray-100 transition-colors flex-shrink-0"
+            >
+              ← Back
+            </button>
+            <h1 className="text-xl md:text-3xl font-medium tracking-wide font-italiana truncate">My Bookshelf</h1>
+          </div>
+          <button
+            onClick={() => (showAddForm ? handleCancelAdd() : setShowAddForm(true))}
+            className="bg-white rounded-lg px-3 py-2 md:px-4 text-sm font-medium hover:bg-gray-100 transition-colors flex-shrink-0"
+          >
+            {showAddForm ? "Cancel" : "+ Add Book"}
+          </button>
+        </header>
+
+        {/* Collapsible add-book panel with Open Library search */}
+        {showAddForm && (
+          <div className="px-6 py-4 bg-[#e9eee6] border-b border-gray-200">
+            {/* Search input */}
+            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for a book..."
+                className="flex-1 rounded-xl bg-white px-4 py-2 text-sm border border-gray-300"
+              />
+              <button
+                type="submit"
+                className="bg-[#b8d1b0] rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#a5c4a0] transition-colors"
+              >
+                Search
+              </button>
+            </form>
+
+            {/* Search results */}
+            {searchLoading && (
+              <p className="text-sm text-gray-500 mb-3">Searching...</p>
+            )}
+            {searchError && (
+              <p className="text-sm text-red-500 mb-3">{searchError}</p>
+            )}
+            {!searchLoading && searchResults.length > 0 && (
+              <ul className="max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white mb-4 divide-y divide-gray-100">
+                {searchResults.map((book) => (
+                  <li
+                    key={book.google_books_id}
+                    onClick={() => setSelectedBook(book)}
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#f0f5ee] transition-colors ${
+                      selectedBook?.google_books_id === book.google_books_id
+                        ? "bg-[#dfe9d9]"
+                        : ""
+                    }`}
+                  >
+                    {book.cover_image ? (
+                      <img
+                        src={book.cover_image}
+                        alt={book.title}
+                        className="w-8 h-12 object-cover rounded flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-12 bg-gray-200 rounded flex-shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{book.title}</p>
+                      <p className="text-xs text-gray-500 truncate">{book.author}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!searchLoading && searchPerformed && searchResults.length === 0 && (
+              <p className="text-sm text-gray-500 mb-3">No results found.</p>
+            )}
+
+            {/* Add to shelf form — only shown once a book is selected */}
+            {selectedBook && (
+              <form onSubmit={handleAddBook} className="flex gap-3 flex-wrap items-center">
+                <p className="text-sm font-medium text-gray-700 flex-1 truncate">
+                  Adding: <span className="font-semibold">{selectedBook.title}</span>
+                </p>
+                <select
+                  value={addStatus}
+                  onChange={(e) => setAddStatus(e.target.value)}
+                  className="rounded-xl bg-white px-3 py-2 text-sm border border-gray-300"
+                >
+                  <option value="to_read">To Read</option>
+                  <option value="reading">Reading</option>
+                  <option value="finished">Finished</option>
+                </select>
+                <button
+                  type="submit"
+                  className="bg-[#b8d1b0] rounded-lg px-5 py-2 text-sm font-medium hover:bg-[#a5c4a0] transition-colors"
+                >
+                  Add to Shelf
+                </button>
+                {addError && (
+                  <p className="w-full text-sm text-red-500">{addError}</p>
+                )}
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* Tab navigation */}
+        <div className="flex border-b border-gray-200 bg-white">
+          {TABS.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex-1 px-2 py-3 md:px-6 md:py-4 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === key
+                  ? "border-[#6b8b67] text-[#6b8b67]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {label}
+              <span className="ml-1 md:ml-2 bg-[#dfe9d9] text-[#6b8b67] text-xs rounded-full px-1.5 md:px-2 py-0.5">
+                {shelf[key].length}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Book list for the active tab */}
+        <section className="px-6 py-8">
+          {actionError && (
+            <p className="text-sm text-red-500 mb-4">{actionError}</p>
+          )}
+          {loading && (
+            <p className="text-center text-gray-500 py-12">Loading your bookshelf...</p>
+          )}
+          {error && (
+            <p className="text-center text-red-500 py-12">{error}</p>
+          )}
+          {!loading && !error && shelf[activeTab].length === 0 && (
+            <p className="text-center text-gray-500 py-12">
+              No books here yet. Add one above!
+            </p>
+          )}
+          {!loading && !error && shelf[activeTab].length > 0 && (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {shelf[activeTab].map((book) => (
+                <div
+                  key={book.book_id}
+                  className="flex gap-4 rounded-2xl bg-[#b8d1b0] p-5 min-h-[160px]"
+                >
+                  {/* Cover image */}
+                  {book.cover_image && (
+                    <img
+                      src={book.cover_image}
+                      alt={book.title}
+                      className="w-16 h-24 object-cover rounded-lg flex-shrink-0"
+                    />
+                  )}
+
+                  <div className="flex flex-col flex-1 justify-between">
+                    <div>
+                      <h3 className="font-medium text-gray-900">{book.title}</h3>
+                      <p className="text-sm text-gray-700 mt-1">{book.author}</p>
+                    </div>
+
+                    {/* Star rating */}
+                    <div className="flex gap-1 mt-3">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => handleRating(book.book_id, star)}
+                          className="text-xl md:text-lg leading-none hover:scale-110 transition-transform py-1 px-0.5"
+                        >
+                          {star <= (book.rating || 0) ? "★" : "☆"}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-2">
+                      {/* Status change dropdown */}
+                      <select
+                        value={book.read_status}
+                        onChange={(e) => handleStatusChange(book.book_id, e.target.value)}
+                        className="text-xs rounded-lg bg-white px-2 py-1 border border-gray-300"
+                      >
+                        <option value="to_read">To Read</option>
+                        <option value="reading">Reading</option>
+                        <option value="finished">Finished</option>
+                      </select>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => {
+                            if (expandedBookId === book.book_id) {
+                              setExpandedBookId(null);
+                            } else {
+                              setExpandedBookId(book.book_id);
+                              setReviewDraft(book.review || "");
+                            }
+                          }}
+                          className="text-xs text-[#4a6b47] hover:underline"
+                        >
+                          {expandedBookId === book.book_id ? "Close" : "Review"}
+                        </button>
+                        <button
+                          onClick={() => handleRemove(book.book_id)}
+                          className="text-xs text-red-600 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Saved review display */}
+                    {book.review && expandedBookId !== book.book_id && (
+                      <div className="mt-2 bg-white/60 rounded-lg px-3 py-2">
+                        <p className="text-xs text-gray-700 italic">"{book.review}"</p>
+                        {book.reviewed_at && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(book.reviewed_at).toLocaleDateString("en-US", {
+                              year: "numeric", month: "short", day: "numeric",
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Expandable review editor */}
+                    {expandedBookId === book.book_id && (
+                      <div className="mt-3">
+                        <textarea
+                          value={reviewDraft}
+                          onChange={(e) => setReviewDraft(e.target.value)}
+                          placeholder="Write your review..."
+                          rows={3}
+                          className="w-full text-xs rounded-lg bg-white px-3 py-2 border border-gray-300 resize-none"
+                        />
+                        <button
+                          onClick={async () => {
+                            await handleSaveReview(book.book_id, reviewDraft);
+                            setExpandedBookId(null);
+                          }}
+                          className="mt-1 text-xs bg-white rounded-lg px-3 py-1.5 font-medium hover:bg-gray-100 transition-colors"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      <MobileNavbar />
+    </div>
+  );
+}

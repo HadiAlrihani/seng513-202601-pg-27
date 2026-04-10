@@ -24,10 +24,11 @@ CREATE TABLE books (
     --ISBN-13 is only used on books post 2007, so both are stored if available
     isbn_10 TEXT UNIQUE,
     isbn_13 TEXT UNIQUE,
+    google_books_id TEXT UNIQUE,
     title TEXT NOT NULL,
     author TEXT NOT NULL,
     cover_image TEXT,
-    book_length INTEGER NOT NULL,
+    book_length INTEGER NOT NULL DEFAULT 0,
     book_description TEXT
 );
 
@@ -40,6 +41,7 @@ CREATE TABLE authors (
     id SERIAL PRIMARY KEY,
     author_name TEXT NOT NULL
 );
+
 
 CREATE TABLE bookclubs (
     id SERIAL PRIMARY KEY,
@@ -62,11 +64,14 @@ CREATE TABLE users (
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
     user_password TEXT NOT NULL,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
 
     --These two keep track of last interacted with book/club for quick user access
     last_updated_id INTEGER REFERENCES books(id),
     last_updated_club INTEGER REFERENCES bookclubs(id)
 );
+
+
 
 CREATE TABLE user_friends (
     friend1_id INTEGER REFERENCES users(id),
@@ -84,6 +89,7 @@ CREATE TABLE user_books (
     read_status TEXT CHECK (read_status IN ('to_read', 'reading', 'finished')),
     rating INTEGER CHECK (rating BETWEEN 1 AND 5),
     review TEXT,
+    reviewed_at TIMESTAMP,
 
     --whether a user has this book as one of their favorites
     is_favorite BOOLEAN default FALSE

@@ -3,6 +3,7 @@ import cors from "cors";
 import authRoutes from "./authentication/authRoutes.js";
 import { pool } from "./authentication/dbConfig.js";
 import bookclubRoutes from "./bookclubs/bookclubRoutes.js";
+import bookshelfRoutes from "./bookshelf/bookshelfRoutes.js";
 import discussionRoutes from "./discussions/discussionRoutes.js";
 
 const app = express();
@@ -30,6 +31,7 @@ app.get("/", async (req, res) => {
 
 app.use("/users", authRoutes);
 app.use("/bookclubs", bookclubRoutes);
+app.use("/bookshelf", bookshelfRoutes);
 app.use("/discussions", discussionRoutes);
 
 app.listen(PORT, "0.0.0.0", () => {

@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import FindClub from "./pages/FindClub";
 import YourClubs from "./pages/YourClubs";
 import ClubDiscussion from "./pages/ClubDiscussion";
+import Bookshelf from "./pages/Bookshelf";
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/clubs" element={<FindClub />} />
             <Route path="/my-clubs" element={<YourClubs />} />
             <Route path="/clubs/:clubId/discussion" element={<ClubDiscussion />} />
+            <Route path="/bookshelf" element={<Bookshelf />} />
         </Routes>
     );
 }

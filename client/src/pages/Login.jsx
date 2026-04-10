@@ -28,7 +28,8 @@ export default function Login() {
 
             if (response.ok) {
                 console.log("Login successful: ", data)
-                navigate("/home")
+                localStorage.setItem("token", data.token);
+                navigate("/home");
             }
             else {
                 console.log("Login failed: ", data.message)
