@@ -94,3 +94,37 @@ export const resetPassword = async (req, res) => {
         res.status(500).json({ error: "server error"})
     }
 };
+
+export const deactivateAccount = async (req, res) => {
+    const { user_id, password } = req.body;
+
+    try {
+        const user = await pool.query(
+        "SELECT user_password FROM users where id = $1",
+        [user_id]
+        );
+
+        if (!user.rows.length > 0) {
+            res.status(400).json({ error: "Account deletion failed"});
+        }
+
+        const stored_hash = user.rows[0].user_password;
+
+        const isCorrectPassword = await bcrypt.compare(password, stored_hash);
+
+        if(!isCorrectPassword) {
+            res.status(400).json({ error: "Password entered is incorrect"});
+        }
+
+        // password is correct, proceed with account deletion
+        await pool.query(
+            "DELETE FROM users WHERE id = $1",
+            [user_id]
+        );
+
+        res.status(200).json({ message: "Account successfully deleted"});
+
+    } catch (err) {
+        res.status(500).json({ error: "server error"} );
+    }
+};
