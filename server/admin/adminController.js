@@ -7,7 +7,7 @@ import { pool } from "../authentication/dbConfig.js";
 export const getAllUsers = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, username, email, is_admin, created_at FROM users ORDER BY created_at ASC"
+      "SELECT id, username, email, is_admin FROM users ORDER BY username ASC"
     );
     return res.status(200).json(result.rows);
   } catch (err) {

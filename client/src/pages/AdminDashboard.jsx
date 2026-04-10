@@ -72,7 +72,6 @@ export default function AdminDashboard() {
                                     <th className="px-4 py-3 font-medium">Username</th>
                                     <th className="px-4 py-3 font-medium">Email</th>
                                     <th className="px-4 py-3 font-medium">Admin</th>
-                                    <th className="px-4 py-3 font-medium">Joined</th>
                                     <th className="px-4 py-3"></th>
                                 </tr>
                             </thead>
@@ -87,11 +86,6 @@ export default function AdminDashboard() {
                                             ) : (
                                                 <span className="text-zinc-400">No</span>
                                             )}
-                                        </td>
-                                        <td className="px-4 py-3 text-zinc-500">
-                                            {user.created_at
-                                                ? new Date(user.created_at).toLocaleDateString()
-                                                : "—"}
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             {!user.is_admin && (
