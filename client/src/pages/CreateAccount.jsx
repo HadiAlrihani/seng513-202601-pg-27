@@ -25,16 +25,22 @@ export default function CreateAccount() {
 
             const data = await response.json();
 
+            // set username and session token, then nav directly to homepage
             if (response.ok) {
-                console.log("Account created:", data),
-                navigate("/home")
+                console.log("Account created:", data);
+
+                localStorage.setItem("wormly_id", data.user.div)
+                localStorage.setItem("wormly_username", data.user.username);
+                localStorage.setItem("wormly_email", data.user.email);
+                localStorage.setItem("session_token", data.token);
+                navigate("/home");
             }
             else {
-                console.log("Creation failed: ", data.message)
+                console.log("Creation failed: ", data.message);
             }
         }
         catch (err) {
-            console.error("Error:", err)
+            console.error("Error:", err);
         }
     }
 
