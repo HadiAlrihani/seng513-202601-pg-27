@@ -41,58 +41,58 @@ const PasswordForm = ({ userId, onClose }) => {
 
     return (
         <form onSubmit={handleSubmit}>
-        {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded mb-4">
-            {error}
+            {error && (
+                <div className="bg-red-50 text-red-600 p-3 rounded mb-4">
+                {error}
+                </div>
+            )}
+            
+            <div className="mb-4">
+                <label htmlFor="old-password" className="block text-sm font-medium mb-2">
+                Old Password
+                </label>
+                <input
+                id="old_password"
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                required
+                minLength={3}
+                disabled={loading}
+                className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <label htmlFor="new-password" className="block text-sm font-medium mb-2">
+                New Password
+                </label>
+                <input
+                id="new_password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={3}
+                disabled={loading}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
             </div>
-        )}
-        
-        <div className="mb-4">
-            <label htmlFor="old-password" className="block text-sm font-medium mb-2">
-            Old Password
-            </label>
-            <input
-            id="old_password"
-            type="password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            required
-            minLength={3}
-            disabled={loading}
-            className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <label htmlFor="new-password" className="block text-sm font-medium mb-2">
-            New Password
-            </label>
-            <input
-            id="new_password"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            minLength={3}
-            disabled={loading}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-        </div>
 
-        <div className="flex gap-3 justify-end">
-            <button
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-            >
-            Cancel
-            </button>
-            <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 bg-[#D3F0D3]/100 text-black rounded-lg disabled:opacity-50"
-            >
-            {loading ? 'Updating...' : 'Save'}
-            </button>
-        </div>
+            <div className="flex gap-3 justify-end">
+                <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                Cancel
+                </button>
+                <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 bg-[#D3F0D3]/100 text-black rounded-lg disabled:opacity-50"
+                >
+                {loading ? 'Updating...' : 'Save'}
+                </button>
+            </div>
         </form>
     );
     };
