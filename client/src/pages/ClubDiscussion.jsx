@@ -29,6 +29,7 @@ function ClubDiscussion() {
 
     const [pageError, setPageError] = useState("");
     const [messageError, setMessageError] = useState("");
+    const [notification, setNotification] = useState("");
 
     const selectedCheckpointData = useMemo(() => {
         return (
@@ -39,10 +40,18 @@ function ClubDiscussion() {
         );
     }, [checkpoints, selectedCheckpoint]);
 
+    const showNotification = (text) => {
+        setNotification(text);
+        window.clearTimeout(window.wormlyNotificationTimeout);
+        window.wormlyNotificationTimeout = window.setTimeout(() => {
+            setNotification("");
+        }, 3000);
+    };
+
     const loadClubData = async () => {
         if (!userId) {
             navigate("/");
-            return;
+            return null;
         }
 
         try {
@@ -72,15 +81,22 @@ function ClubDiscussion() {
             );
 
             if (firstUnlocked) {
-                setSelectedCheckpoint(firstUnlocked.checkpoint_num);
+                setSelectedCheckpoint((prevSelected) =>
+                    prevSelected !== null ? prevSelected : firstUnlocked.checkpoint_num
+                );
             } else if (data.checkpoints.length > 0) {
-                setSelectedCheckpoint(data.checkpoints[0].checkpoint_num);
+                setSelectedCheckpoint((prevSelected) =>
+                    prevSelected !== null ? prevSelected : data.checkpoints[0].checkpoint_num
+                );
             } else {
                 setSelectedCheckpoint(null);
             }
+
+            return data;
         } catch (error) {
             console.error("Error loading discussion page:", error);
             setPageError(error.message || "Unable to load discussion page.");
+            return null;
         } finally {
             setIsLoadingPage(false);
         }
@@ -128,6 +144,10 @@ function ClubDiscussion() {
     const handleProgressUpdate = async () => {
         if (!progressValue || !userId) return;
 
+        const previouslyUnlocked = checkpoints
+            .filter((checkpoint) => checkpoint.is_unlocked)
+            .map((checkpoint) => Number(checkpoint.checkpoint_num));
+
         try {
             setIsUpdatingProgress(true);
 
@@ -150,8 +170,30 @@ function ClubDiscussion() {
                 return;
             }
 
-            await loadClubData();
-            setSelectedCheckpoint(Number(progressValue));
+            const refreshedData = await loadClubData();
+            const newSelectedCheckpoint = Number(progressValue);
+            setSelectedCheckpoint(newSelectedCheckpoint);
+
+            if (refreshedData?.checkpoints) {
+                const newlyUnlocked = refreshedData.checkpoints
+                    .filter(
+                        (checkpoint) =>
+                            checkpoint.is_unlocked &&
+                            !previouslyUnlocked.includes(Number(checkpoint.checkpoint_num))
+                    )
+                    .map((checkpoint) => Number(checkpoint.checkpoint_num));
+
+                if (newlyUnlocked.length > 0) {
+                    const highestUnlocked = Math.max(...newlyUnlocked);
+                    showNotification(
+                        `Checkpoint ${highestUnlocked} unlocked! New discussion available.`
+                    );
+                } else {
+                    showNotification("Progress updated successfully.");
+                }
+            } else {
+                showNotification("Progress updated successfully.");
+            }
         } catch (error) {
             console.error("Error updating progress:", error);
             alert("Something went wrong while updating progress.");
@@ -229,6 +271,12 @@ function ClubDiscussion() {
                             </h1>
 
                             <p className="text-zinc-700 mt-2">{club?.book_title}</p>
+
+                            {notification ? (
+                                <div className="mt-4 rounded-2xl border border-[#b8d7ac] bg-[#e8f5e1] px-4 py-3 text-[#315126]">
+                                    {notification}
+                                </div>
+                            ) : null}
 
                             <div className="grid md:grid-cols-[1fr_auto] gap-3 mt-5">
                                 <select
