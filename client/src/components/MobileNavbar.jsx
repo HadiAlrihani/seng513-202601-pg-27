@@ -9,7 +9,7 @@ export default function MobileNavbar() {
     return (
         <div className="w-full h-[10vh] flex border-t-2 border-black fixed bottom-0 left-0 md-computer:hidden">
             <div className="flex-1 flex justify-center items-center">
-                <button onClick={() => navigate('/home')} 
+                <button onClick={() => navigate('/home')}
                 className="flex max-h-full w-full justify-center">
                     <img className="object-contain" src={home_icon} alt="Wormly logo" />
                 </button>

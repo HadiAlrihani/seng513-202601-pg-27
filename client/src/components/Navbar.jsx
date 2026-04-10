@@ -10,7 +10,7 @@ export default function Navbar() {
         <div className="w-full h-[15vh] p-4 border-b-4 drop-shadow-2xl/50 hidden md-computer:flex items-center justify-between" >
             <button onClick={() => navigate('/home')}
             className="w-[15vh] h-[15vh] box-border">
-                <img 
+                <img
                 className="w-full h-full"
                 src={logo} alt="Wormly logo" />
             </button>
