@@ -30,6 +30,7 @@ function ClubDiscussion() {
     const [pageError, setPageError] = useState("");
     const [messageError, setMessageError] = useState("");
     const [notification, setNotification] = useState("");
+    const [showNotificationPopup, setShowNotificationPopup] = useState(false);
 
     const selectedCheckpointData = useMemo(() => {
         return (
@@ -42,10 +43,17 @@ function ClubDiscussion() {
 
     const showNotification = (text) => {
         setNotification(text);
+        setShowNotificationPopup(true);
+
         window.clearTimeout(window.wormlyNotificationTimeout);
         window.wormlyNotificationTimeout = window.setTimeout(() => {
-            setNotification("");
+            setShowNotificationPopup(false);
         }, 3000);
+    };
+
+    const closeNotification = () => {
+        setShowNotificationPopup(false);
+        window.clearTimeout(window.wormlyNotificationTimeout);
     };
 
     const loadClubData = async () => {
@@ -246,6 +254,31 @@ function ClubDiscussion() {
         <div className="min-h-screen bg-zinc-50">
             <Navbar />
 
+            {showNotificationPopup ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4">
+                    <div className="w-full max-w-md rounded-[28px] border border-[#b8d7ac] bg-[#eef7e9] p-6 shadow-2xl text-center">
+                        <p className="text-sm uppercase tracking-wide text-[#4e6b44]">
+                            Notification
+                        </p>
+
+                        <h2 className="mt-2 font-playfair text-2xl text-[#27401f]">
+                            Checkpoint Update
+                        </h2>
+
+                        <p className="mt-3 text-[#315126] text-base leading-7">
+                            {notification}
+                        </p>
+
+                        <button
+                            onClick={closeNotification}
+                            className="mt-5 px-5 py-2 rounded-2xl bg-[#a8c49f] hover:bg-[#99b890] transition"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            ) : null}
+
             <div className="max-w-6xl mx-auto px-4 py-6 pb-28 md-computer:pb-8">
                 <Link to="/my-clubs" className="text-sm underline text-gray-600">
                     ← Back
@@ -271,12 +304,6 @@ function ClubDiscussion() {
                             </h1>
 
                             <p className="text-zinc-700 mt-2">{club?.book_title}</p>
-
-                            {notification ? (
-                                <div className="mt-4 rounded-2xl border border-[#b8d7ac] bg-[#e8f5e1] px-4 py-3 text-[#315126]">
-                                    {notification}
-                                </div>
-                            ) : null}
 
                             <div className="grid md:grid-cols-[1fr_auto] gap-3 mt-5">
                                 <select
