@@ -3,6 +3,7 @@
 import express from "express";
 import authRoutes from "./authentication/authRoutes.js";
 import { pool } from "./authentication/dbConfig.js";
+import adminRoutes from "./admin/adminRoutes.js";
 
 const app = express();
 const PORT = 5000;
@@ -29,6 +30,7 @@ app.get("/", async (req, res) => {
 });
 // All auth routes (register + login)
 app.use("/users", authRoutes);
+app.use("/admin", adminRoutes);
 
 // Start server
 app.listen(PORT, () => {
