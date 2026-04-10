@@ -7,9 +7,13 @@ function ClubDiscussion() {
     const navigate = useNavigate();
     const { clubId } = useParams();
 
-    const storedUserId = localStorage.getItem("userId");
-    const userId = storedUserId ? Number(storedUserId) : 1;
-    const username = localStorage.getItem("username") || "Reader";
+    const storedUserId =
+        localStorage.getItem("userId") || localStorage.getItem("wormly_id");
+    const userId = storedUserId ? Number(storedUserId) : null;
+    const username =
+        localStorage.getItem("username") ||
+        localStorage.getItem("wormly_username") ||
+        "Reader";
 
     const [club, setClub] = useState(null);
     const [checkpoints, setCheckpoints] = useState([]);
@@ -36,6 +40,11 @@ function ClubDiscussion() {
     }, [checkpoints, selectedCheckpoint]);
 
     const loadClubData = async () => {
+        if (!userId) {
+            navigate("/");
+            return;
+        }
+
         try {
             setIsLoadingPage(true);
             setPageError("");
@@ -52,7 +61,8 @@ function ClubDiscussion() {
             setClub(data.club);
             setCheckpoints(data.checkpoints);
             setProgressValue(
-                data.club.progress_checkpoint
+                data.club.progress_checkpoint !== null &&
+                    data.club.progress_checkpoint !== undefined
                     ? String(data.club.progress_checkpoint)
                     : ""
             );
@@ -77,7 +87,7 @@ function ClubDiscussion() {
     };
 
     const loadMessages = async (checkpointNum) => {
-        if (!checkpointNum) return;
+        if (!checkpointNum || !userId) return;
 
         try {
             setIsLoadingMessages(true);
@@ -104,7 +114,7 @@ function ClubDiscussion() {
 
     useEffect(() => {
         loadClubData();
-    }, [clubId]);
+    }, [clubId, userId]);
 
     useEffect(() => {
         if (selectedCheckpointData?.is_unlocked) {
@@ -116,7 +126,7 @@ function ClubDiscussion() {
     }, [selectedCheckpoint, selectedCheckpointData?.is_unlocked]);
 
     const handleProgressUpdate = async () => {
-        if (!progressValue) return;
+        if (!progressValue || !userId) return;
 
         try {
             setIsUpdatingProgress(true);
@@ -153,7 +163,9 @@ function ClubDiscussion() {
     const handlePostMessage = async (e) => {
         e.preventDefault();
 
-        if (!messageText.trim() || !selectedCheckpointData?.is_unlocked) return;
+        if (!messageText.trim() || !selectedCheckpointData?.is_unlocked || !userId) {
+            return;
+        }
 
         try {
             setIsPostingMessage(true);

@@ -42,7 +42,7 @@ export default function Homepage() {
                         <h1 className="font-italiana pt-2 text-center md:text-2xl md-computer:text-3xl">Update Reading Progress</h1>
                     </div>
                     <div className="flex flex-1 flex-col items-center">
-                        <button onClick={() => navigate('/friends-shelf')} 
+                        <button onClick={() => navigate('/my-clubs')} 
                         className="flex items-center justify-center w-[44vw] h-[44vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
                         md-computer:h-[20vw] md-computer:w-[20vw]">
                             <img src={club} 
@@ -55,21 +55,17 @@ export default function Homepage() {
             <div className="hidden md-computer:flex flex-col h-[85vh] items-center w-[15vw] bg-[#D3F0D3]/35">
                 <h1 className="font-italiana text-center text-3xl py-[2vh]"> My Library</h1>
                 <div className="flex flex-col h-[40vh] justify-evenly">
-                    <button  
+                    <button onClick={() => navigate('/bookshelf')}
                     className="bg-[#D3F0D3] rounded-lg w-[12vw] py-[1vh]">
                         <h1 className="font-italiana text-center text-2xl">Current Reads</h1>
                     </button>
-                    <button
+                    <button onClick={() => navigate('/bookshelf', { state: { tab: "to_read" }})}
                     className="bg-[#D3F0D3] rounded-lg w-[12vw] py-[1vh]">
                         <h1 className="font-italiana text-center text-2xl">Want to Read</h1>
                     </button>
-                    <button 
+                    <button onClick={() => navigate('/bookshelf', { state: { tab: "finished" }})}
                     className="bg-[#D3F0D3] rounded-lg w-[12vw] py-[1vh]">
                         <h1 className="font-italiana text-center text-2xl">Completed Reads</h1>
-                    </button>
-                    <button 
-                    className="bg-[#D3F0D3] rounded-lg w-[12vw] py-[1vh]">
-                        <h1 className="font-italiana text-center text-2xl">Favorites</h1>
                     </button>
                 </div>
             </div>
