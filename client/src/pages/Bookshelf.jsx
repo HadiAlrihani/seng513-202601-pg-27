@@ -3,7 +3,7 @@
 // Books can be added, have their status changed, or be removed.
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 
@@ -17,9 +17,12 @@ const TABS = [
 export default function Bookshelf() {
   const navigate = useNavigate();
 
+  // to allow navigation onto a specific bookshelf tab from homepage
+  const location = useLocation();
+
   // Shelf data grouped by read_status
   const [shelf, setShelf] = useState({ to_read: [], reading: [], finished: [] });
-  const [activeTab, setActiveTab] = useState("reading");
+  const [activeTab, setActiveTab] = useState(location.state?.tab || "reading");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -45,7 +48,7 @@ export default function Bookshelf() {
 
   // Fetch the user's shelf on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("wormly_token");
     if (!token) {
       navigate("/");
       return;
@@ -67,7 +70,7 @@ export default function Bookshelf() {
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("wormly_token");
     setSearchLoading(true);
     setSearchPerformed(false);
     setSearchError("");
@@ -97,7 +100,7 @@ export default function Bookshelf() {
   const handleAddBook = async (e) => {
     e.preventDefault();
     if (!selectedBook) return;
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("wormly_token");
     setAddError("");
 
     try {
@@ -148,7 +151,7 @@ export default function Bookshelf() {
 
   // Move a book to a different status bucket via PATCH /bookshelf/:bookId
   const handleStatusChange = async (bookId, newStatus) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("wormly_token");
     setActionError("");
 
     try {
@@ -184,7 +187,7 @@ export default function Bookshelf() {
 
   // Save a review for a book via PATCH /bookshelf/:bookId
   const handleSaveReview = async (bookId, reviewText) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("wormly_token");
     setActionError("");
 
     try {
@@ -221,7 +224,7 @@ export default function Bookshelf() {
 
   // Update the rating for a book via PATCH /bookshelf/:bookId
   const handleRating = async (bookId, newRating) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("wormly_token");
     setActionError("");
 
     try {
@@ -256,7 +259,7 @@ export default function Bookshelf() {
 
   // Remove a book from the shelf via DELETE /bookshelf/:bookId
   const handleRemove = async (bookId) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("wormly_token");
     setActionError("");
 
     try {
