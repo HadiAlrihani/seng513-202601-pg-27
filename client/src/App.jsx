@@ -9,6 +9,7 @@ import FindClub from "./pages/FindClub";
 import YourClubs from "./pages/YourClubs";
 import ClubDiscussion from "./pages/ClubDiscussion";
 import Bookshelf from "./pages/Bookshelf";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
     return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/my-clubs" element={<YourClubs />} />
             <Route path="/clubs/:clubId/discussion" element={<ClubDiscussion />} />
             <Route path="/bookshelf" element={<Bookshelf />} />
+            <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
     );
 }

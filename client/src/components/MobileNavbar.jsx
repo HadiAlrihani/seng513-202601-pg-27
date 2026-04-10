@@ -5,6 +5,7 @@ import profile_icon from "../assets/profile_icon.png";
 
 export default function MobileNavbar() {
     const navigate = useNavigate();
+    const isAdmin = localStorage.getItem("wormly_isAdmin") === "true";
 
     return (
         <div className="w-full h-[10vh] flex border-t-2 border-black fixed bottom-0 left-0 md-computer:hidden">
@@ -34,6 +35,14 @@ export default function MobileNavbar() {
                     <img className="object-contain" src={profile_icon} alt="Profile" />
                 </button>
             </div>
+            {isAdmin && (
+                <div className="flex-1 flex justify-center items-center border-l-2 border-black">
+                    <button onClick={() => navigate('/admin')}
+                    className="flex w-full max-h-full justify-center items-center text-sm font-semibold text-red-700">
+                        Admin
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

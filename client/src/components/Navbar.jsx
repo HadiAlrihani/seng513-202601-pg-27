@@ -5,6 +5,7 @@ import profile_icon from "../assets/profile_icon.png";
 
 export default function Navbar() {
     const navigate = useNavigate();
+    const isAdmin = localStorage.getItem("wormly_isAdmin") === "true";
 
     return (
         <div className="w-full h-[15vh] p-4 border-b-4 drop-shadow-2xl/50 hidden md-computer:flex items-center justify-between" >
@@ -19,6 +20,9 @@ export default function Navbar() {
             <div className="flex gap-6 text-xl font-italiana">
                 <button onClick={() => navigate('/clubs')} className="hover:underline">Clubs</button>
                 <button onClick={() => navigate('/bookshelf')} className="hover:underline">Bookshelf</button>
+                {isAdmin && (
+                    <button onClick={() => navigate('/admin')} className="hover:underline text-red-700">Admin</button>
+                )}
             </div>
             <div className="w-[15vh]">
                 <button onClick={() => navigate('/profile')}
