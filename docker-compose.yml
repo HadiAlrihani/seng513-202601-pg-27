@@ -1,3 +1,5 @@
+name: wormly
+
 services:
   client:
     build: ./client
@@ -39,10 +41,15 @@ services:
       - POSTGRES_USER=${db_username}
       - POSTGRES_PASSWORD=${db_password}
       - POSTGRES_DB=${db_name}
-      
+    volumes:
+      - wormly_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${db_username} -d ${db_name}"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 5s
+
+volumes:
+  wormly_postgres_data:
+    name: wormly_postgres_data
