@@ -178,6 +178,41 @@ export default function Bookshelf() {
     }
   };
 
+  // Update the rating for a book via PATCH /bookshelf/:bookId
+  const handleRating = async (bookId, newRating) => {
+    const token = localStorage.getItem("token");
+    setActionError("");
+
+    try {
+      const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating: newRating }),
+      });
+
+      if (!res.ok) {
+        setActionError("Failed to update rating. Please try again.");
+        return;
+      }
+
+      // Update rating in local shelf state
+      setShelf((prev) => {
+        const update = (list) =>
+          list.map((b) => (b.book_id === bookId ? { ...b, rating: newRating } : b));
+        return {
+          to_read: update(prev.to_read),
+          reading: update(prev.reading),
+          finished: update(prev.finished),
+        };
+      });
+    } catch {
+      setActionError("Failed to update rating. Please try again.");
+    }
+  };
+
   // Remove a book from the shelf via DELETE /bookshelf/:bookId
   const handleRemove = async (bookId) => {
     const token = localStorage.getItem("token");
@@ -377,7 +412,20 @@ export default function Bookshelf() {
                       <p className="text-sm text-gray-700 mt-1">{book.author}</p>
                     </div>
 
-                    <div className="flex items-center justify-between mt-3">
+                    {/* Star rating */}
+                    <div className="flex gap-0.5 mt-3">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => handleRating(book.book_id, star)}
+                          className="text-lg leading-none hover:scale-110 transition-transform"
+                        >
+                          {star <= (book.rating || 0) ? "★" : "☆"}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-2">
                       {/* Status change dropdown */}
                       <select
                         value={book.read_status}

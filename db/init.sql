@@ -9,7 +9,6 @@ DROP TABLE IF EXISTS user_authors CASCADE;
 DROP TABLE IF EXISTS book_genres CASCADE;
 DROP TABLE IF EXISTS user_genres CASCADE;
 DROP TABLE IF EXISTS user_books CASCADE;
-DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS user_friends CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS bookclubs CASCADE;
@@ -77,17 +76,6 @@ CREATE TABLE user_friends (
     friend1_id INTEGER REFERENCES users(id),
     friend2_id INTEGER REFERENCES users(id),
     PRIMARY KEY (friend1_id, friend2_id)
-);
-
--- Public reviews left by any user on any book
-CREATE TABLE reviews (
-    id SERIAL PRIMARY KEY,
-    book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    rating INTEGER CHECK (rating BETWEEN 1 AND 5),
-    review_text TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE (user_id, book_id)
 );
 
 --Associates users with books (many-to-many relationsihp)

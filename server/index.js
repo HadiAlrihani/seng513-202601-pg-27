@@ -7,7 +7,6 @@ import { pool } from "./authentication/dbConfig.js";
 import bookclubRoutes from "./bookclubs/bookclubRoutes.js";
 import bookshelfRoutes from "./bookshelf/bookshelfRoutes.js";
 
-
 const app = express();
 const PORT = 5000;
 
