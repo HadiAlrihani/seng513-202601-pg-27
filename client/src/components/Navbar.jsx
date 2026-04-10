@@ -15,8 +15,13 @@ export default function Navbar() {
                 src={logo} alt="Wormly logo" />
             </button>
             <h1 className="font-italiana text-7xl">Wormly Connected</h1>
+            {/* Navigation links */}
+            <div className="flex gap-6 text-xl font-italiana">
+                <button onClick={() => navigate('/clubs')} className="hover:underline">Clubs</button>
+                <button onClick={() => navigate('/bookshelf')} className="hover:underline">Bookshelf</button>
+            </div>
             <div className="w-[15vh]">
-                <button onClick={() => navigate('/profile')} 
+                <button onClick={() => navigate('/profile')}
                 className="flex justify-end w-full h-[15vh]">
                     <img className="max-h-[15vh] object-contain" src={profile_icon} alt="" />
                 </button>

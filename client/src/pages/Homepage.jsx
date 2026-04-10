@@ -6,6 +6,7 @@ import MobileNavbar from "../components/MobileNavbar";
 import HomeSidebar from "../components/HomeSidebar";
 
 import book_with_worm from "../assets/book_with_worm.png";
+import club from "../assets/club.png";
 
 export default function Homepage() {
     const navigate = useNavigate();
@@ -44,7 +45,7 @@ export default function Homepage() {
                         <button onClick={() => navigate('/friends-shelf')} 
                         className="flex items-center justify-center w-[44vw] h-[44vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
                         md-computer:h-[20vw] md-computer:w-[20vw]">
-                            <img src={book_with_worm} 
+                            <img src={club} 
                             className="h-[28vw] w-[28vw] md-computer:h-[16vw] md-computer:w-[16vw] object-contain" />
                         </button>
                         <h1 className="font-italiana pt-2 text-center md:text-2xl md-computer:text-3xl">My Clubs</h1>

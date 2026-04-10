@@ -207,7 +207,7 @@ export default function Profile() {
         title="Deactivate your account">
             <DeactivateForm
             userId={localStorage.getItem("wormly_id")}
-            onClose={() => setIsPasswordModalOpen(false)}
+            onClose={() => setIsDeleteModalOpen(false)}
             onSuccess={() => {
                 // Clear all user data
                 localStorage.clear();

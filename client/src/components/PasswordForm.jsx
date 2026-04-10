@@ -66,7 +66,7 @@ const PasswordForm = ({ userId, onClose }) => {
             </label>
             <input
             id="new_password"
-            type="text"
+            type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required

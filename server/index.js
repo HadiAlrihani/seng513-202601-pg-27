@@ -1,5 +1,3 @@
-// Main server file
-
 import express from "express";
 import cors from "cors";
 import authRoutes from "./authentication/authRoutes.js";
@@ -7,20 +5,16 @@ import { pool } from "./authentication/dbConfig.js";
 import bookclubRoutes from "./bookclubs/bookclubRoutes.js";
 import profileRoutes from "./profile/profileRoutes.js";
 
+import bookshelfRoutes from "./bookshelf/bookshelfRoutes.js";
+import discussionRoutes from "./discussions/discussionRoutes.js";
 
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
-// Middleware to read JSON data from requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
 
-// Test route to check server + database
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -36,12 +30,13 @@ app.get("/", async (req, res) => {
     });
   }
 });
-// All auth routes (register + login)
+
 app.use("/users", authRoutes);
 app.use("/bookclubs", bookclubRoutes);
 app.use("/profile", profileRoutes);
+app.use("/bookshelf", bookshelfRoutes);
+app.use("/discussions", discussionRoutes);
 
-// Start server
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
