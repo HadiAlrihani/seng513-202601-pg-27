@@ -1,32 +1,29 @@
-import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-import './App.css'
-import Login from './pages/Login'
-import CreateAccount from './pages/CreateAccount';
-import SelectGenres from './pages/selectGenres';
-import Homepage from './pages/Homepage';
+import "./App.css";
+import { Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import CreateAccount from "./pages/CreateAccount";
+import SelectGenres from "./pages/SelectGenres";
+import Homepage from "./pages/Homepage";
+import Profile from "./pages/Profile";
 import FindClub from "./pages/FindClub";
-import Profile from './pages/Profile';
-import Bookshelf from './pages/Bookshelf';
+import YourClubs from "./pages/YourClubs";
+import ClubDiscussion from "./pages/ClubDiscussion";
+import Bookshelf from "./pages/Bookshelf";
 
 function App() {
-
-  return (
-    <Router>
-      <div className='h-screen bg-white font-inter'>
+    return (
         <Routes>
-          <Route index element={<Login />} />
-          <Route path='/create-account' element={ <CreateAccount /> } />
-          <Route path='/select-genres' element={ <SelectGenres /> } />
-          <Route path='/home' element={ <Homepage /> } />
-          <Route path='/profile' element={ <Profile />} />
-          <Route path="/clubs" element={<FindClub />} />
-          <Route path="/bookshelf" element={<Bookshelf />} />
+            <Route path="/" element={<Login />} />
+            <Route path="/create-account" element={<CreateAccount />} />
+            <Route path="/select-genres" element={<SelectGenres />} />
+            <Route path="/home" element={<Homepage />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/clubs" element={<FindClub />} />
+            <Route path="/my-clubs" element={<YourClubs />} />
+            <Route path="/clubs/:clubId/discussion" element={<ClubDiscussion />} />
+            <Route path="/bookshelf" element={<Bookshelf />} />
         </Routes>
-      </div>
-    </Router>
-  )
+    );
 }
 
-export default App
+export default App;

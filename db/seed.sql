@@ -18,21 +18,13 @@ grandest epic in science fiction.'),
 386,
 'By winning the Hunger Games, Katniss and Peeta have secured a life of safety 
 and plenty for themselves and their families, but because they won by defying the rules, 
-they unwittingly become the faces of an impending rebellion. |'),
+they unwittingly become the faces of an impending rebellion.'),
 
 ('0553386794', '9780553386790', 'A Game of Thrones (HBO Tie-in Edition)', 'George R. R. Martin',
 'http://books.google.com/books/content?id=hXNvadj27ekC&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api',
 722, 
 'NOW THE ACCLAIMED HBO SERIES GAME OF THRONES—THE MASTERPIECE THAT BECAME A CULTURAL PHENOMENON Here is the first book 
-in the landmark series that has redefined imaginative fiction and become a modern masterpiece. A GAME OF THRONES In a 
-land where summers can last decades and winters a lifetime, trouble is brewing. The cold is returning, and in the frozen 
-wastes to the North of Winterfell, sinister and supernatural forces are massing beyond the kingdom’s protective Wall. 
-At the center of the conflict lie the Starks of Winterfell, a family as harsh and unyielding as the land they were born to. 
-Sweeping from a land of brutal cold to a distant summertime kingdom of epicurean plenty, here is a tale of lords and ladies, 
-soldiers and sorcerers, assassins and bastards, who come together in a time of grim omens. Amid plots and counterplots, 
-tragedy and betrayal, victory and terror, the fate of the Starks, their allies, and their enemies hangs perilously in the balance, 
-as each endeavors to win that deadliest of conflicts: the game of thrones. A GAME OF THRONES • A CLASH OF KINGS • A STORM OF SWORDS • 
-A FEAST FOR CROWS • A DANCE WITH DRAGONS');
+in the landmark series that has redefined imaginative fiction and become a modern masterpiece.');
 
 INSERT INTO genres(genre_name) VALUES
 ('Science Fiction'),
@@ -64,7 +56,8 @@ INSERT INTO users (username, email, user_password, last_updated_id, last_updated
 /*The password for enjoyer is books123*/
 ('book_enjoyer', 'reader@gmail.com', '$2b$10$qkblFxORoJrK0jup2P42VOCIpEuxoLGSWqUKJWHEz.mRTzY0BEsmu', 2, 1);
 
-INSERT INTO user_friends (friend1_id, friend2_id) VALUES (2, 3);
+INSERT INTO user_friends (friend1_id, friend2_id) VALUES
+(2, 3);
 
 INSERT INTO user_books (user_id, book_id, date_started, date_finished, read_status, rating, review, is_favorite) VALUES
 (2, 2, '2026-02-01', NULL, 'reading', NULL, NULL, FALSE),
@@ -90,8 +83,42 @@ INSERT INTO user_authors (user_id, author_id) VALUES
 INSERT INTO checkpoints (club_id, checkpoint_num, checkpoint_name) VALUES
 (1, 1, 'Chapter 1 discussion'),
 (1, 2, 'Chapter 2 discussion'),
-(1, 3, 'Chapter 3 discussion');
+(1, 3, 'Chapter 3 discussion'),
+(2, 1, 'Part 1 discussion'),
+(2, 2, 'Part 2 discussion'),
+(2, 3, 'Final discussion'),
+(3, 1, 'Tribute selection discussion'),
+(3, 2, 'Arena strategy discussion'),
+(3, 3, 'Final survival discussion'),
+(4, 1, 'Opening chapters discussion'),
+(4, 2, 'Mid-book discussion'),
+(4, 3, 'Ending discussion');
 
 INSERT INTO bookclub_members (user_id, club_id, user_role, progress_checkpoint) VALUES
 (2, 1, 'moderator', 3),
-(3, 1, 'member', 2);
+(3, 1, 'member', 2),
+(2, 2, 'moderator', 1),
+(3, 2, 'member', 1),
+(2, 3, 'moderator', 2),
+(3, 3, 'member', 1),
+(2, 4, 'moderator', 2),
+(3, 4, 'member', 1);
+
+INSERT INTO checkpoint_messages (club_id, checkpoint_num, user_id, message_text) VALUES
+(1, 1, 2, 'Welcome everyone. Keep this checkpoint spoiler-safe and focused on Chapter 1 only.'),
+(1, 1, 3, 'I already like the opening world-building a lot.'),
+(1, 2, 2, 'Chapter 2 adds much more political tension.'),
+(1, 2, 3, 'Agreed. It feels much bigger now.'),
+(1, 3, 2, 'This checkpoint is where the pacing really starts to build.'),
+
+(2, 1, 2, 'Let’s keep this first discussion focused on the opening setup.'),
+(2, 1, 3, 'The contrast in the world is already very strong.'),
+(2, 2, 2, 'This part makes the stakes feel much more personal.'),
+
+(3, 1, 2, 'Welcome to the private Hunger Games discussion. Please keep this checkpoint spoiler-safe.'),
+(3, 1, 3, 'The opening already sets up the pressure really well.'),
+(3, 2, 2, 'This checkpoint is where strategy starts to matter a lot more.'),
+
+(4, 1, 2, 'Let’s focus on the early political setup only for this checkpoint.'),
+(4, 1, 3, 'There are already so many competing interests in the opening chapters.'),
+(4, 2, 2, 'Mid-book is where the power dynamics become much clearer.');

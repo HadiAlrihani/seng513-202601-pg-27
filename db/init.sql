@@ -1,8 +1,10 @@
 /*
 Schema of the Wormly Connected database. Handles relationships between
-users and books, authors, genres, bookclubs, and other users.*/
+users and books, authors, genres, bookclubs, checkpoints, and discussions.
+*/
 
---DROP TABLES TO SAFELY RECREATE SCHEMA
+-- DROP TABLES TO SAFELY RECREATE SCHEMA
+DROP TABLE IF EXISTS checkpoint_messages CASCADE;
 DROP TABLE IF EXISTS bookclub_members CASCADE;
 DROP TABLE IF EXISTS checkpoints CASCADE;
 DROP TABLE IF EXISTS user_authors CASCADE;
@@ -15,7 +17,6 @@ DROP TABLE IF EXISTS bookclubs CASCADE;
 DROP TABLE IF EXISTS authors CASCADE;
 DROP TABLE IF EXISTS genres CASCADE;
 DROP TABLE IF EXISTS books CASCADE;
-
 
 CREATE TABLE books (
     id SERIAL PRIMARY KEY,
@@ -78,7 +79,7 @@ CREATE TABLE user_friends (
     PRIMARY KEY (friend1_id, friend2_id)
 );
 
---Associates users with books (many-to-many relationsihp)
+--Associates users with books (many-to-many relationship)
 CREATE TABLE user_books (
     user_id INTEGER REFERENCES users(id),
     book_id INTEGER REFERENCES books(id),
@@ -94,24 +95,19 @@ CREATE TABLE user_books (
     is_favorite BOOLEAN default FALSE
 );
 
-
 --Users can associate themselves with genres they like
---Associates users with genres (many-to-many relationship)
 CREATE TABLE user_genres (
     user_id INTEGER REFERENCES users(id),
     genre_id INTEGER REFERENCES genres(id),
     PRIMARY KEY (user_id, genre_id)
 );
 
-
 --Associates books with genres (many-to-many relationship)
---Prevents us from storing book genres as a list in the books table
 CREATE TABLE book_genres (
     book_id INTEGER REFERENCES books(id),
     genre_id INTEGER REFERENCES genres(id),
     PRIMARY KEY (book_id, genre_id)
 );
-
 
 --Associates users with authors they want to follow (many-to-many relationship)
 CREATE TABLE user_authors (
@@ -120,10 +116,9 @@ CREATE TABLE user_authors (
     PRIMARY KEY (user_id, author_id)
 );
 
-
 --each entry is a checkpoint/thread in a bookclub
 CREATE TABLE checkpoints (
-    club_id INTEGER REFERENCES bookclubs(id),
+    club_id INTEGER REFERENCES bookclubs(id) ON DELETE CASCADE,
     checkpoint_num INTEGER NOT NULL,
     PRIMARY KEY (club_id, checkpoint_num),
     checkpoint_name TEXT NOT NULL
@@ -131,8 +126,8 @@ CREATE TABLE checkpoints (
 
 --Associates users with bookclubs (many-to-many relationship)
 CREATE TABLE bookclub_members (
-    user_id INTEGER REFERENCES users(id), 
-    club_id INTEGER REFERENCES bookclubs(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    club_id INTEGER REFERENCES bookclubs(id) ON DELETE CASCADE,
     user_role TEXT NOT NULL CHECK (user_role IN ('member', 'moderator')),
     progress_checkpoint INTEGER,
 
@@ -141,3 +136,27 @@ CREATE TABLE bookclub_members (
     FOREIGN KEY (club_id, progress_checkpoint)
     REFERENCES checkpoints(club_id, checkpoint_num)
 );
+
+--Persisted discussion messages for each checkpoint/thread
+CREATE TABLE checkpoint_messages (
+    id SERIAL PRIMARY KEY,
+    club_id INTEGER NOT NULL,
+    checkpoint_num INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    message_text TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (club_id, checkpoint_num)
+        REFERENCES checkpoints(club_id, checkpoint_num)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_checkpoint_messages_lookup
+ON checkpoint_messages (club_id, checkpoint_num, created_at);
+
+CREATE INDEX idx_bookclub_members_lookup
+ON bookclub_members (user_id, club_id);
