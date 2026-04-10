@@ -88,6 +88,7 @@ CREATE TABLE user_books (
     read_status TEXT CHECK (read_status IN ('to_read', 'reading', 'finished')),
     rating INTEGER CHECK (rating BETWEEN 1 AND 5),
     review TEXT,
+    reviewed_at TIMESTAMP,
 
     --whether a user has this book as one of their favorites
     is_favorite BOOLEAN default FALSE

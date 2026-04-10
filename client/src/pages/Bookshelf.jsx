@@ -31,6 +31,10 @@ export default function Bookshelf() {
   // Error for status change / remove failures
   const [actionError, setActionError] = useState("");
 
+  // Track which book card has its review section open, and the draft text
+  const [expandedBookId, setExpandedBookId] = useState(null);
+  const [reviewDraft, setReviewDraft] = useState("");
+
   // Google Books search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -178,6 +182,43 @@ export default function Bookshelf() {
     }
   };
 
+  // Save a review for a book via PATCH /bookshelf/:bookId
+  const handleSaveReview = async (bookId, reviewText) => {
+    const token = localStorage.getItem("token");
+    setActionError("");
+
+    try {
+      const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ review: reviewText }),
+      });
+
+      if (!res.ok) {
+        setActionError("Failed to save review. Please try again.");
+        return;
+      }
+
+      const now = new Date().toISOString();
+      setShelf((prev) => {
+        const update = (list) =>
+          list.map((b) =>
+            b.book_id === bookId ? { ...b, review: reviewText, reviewed_at: now } : b
+          );
+        return {
+          to_read: update(prev.to_read),
+          reading: update(prev.reading),
+          finished: update(prev.finished),
+        };
+      });
+    } catch {
+      setActionError("Failed to save review. Please try again.");
+    }
+  };
+
   // Update the rating for a book via PATCH /bookshelf/:bookId
   const handleRating = async (bookId, newRating) => {
     const token = localStorage.getItem("token");
@@ -246,19 +287,19 @@ export default function Bookshelf() {
       <div className="mx-auto max-w-5xl mt-4 rounded-xl bg-zinc-50 shadow-lg overflow-hidden">
 
         {/* Page header with title and add-book toggle */}
-        <header className="bg-[#cfe0c8] px-6 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <header className="bg-[#cfe0c8] px-4 py-4 md:px-6 md:py-6 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
             <button
               onClick={() => navigate("/home")}
-              className="bg-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-gray-100 transition-colors"
+              className="bg-white rounded-lg px-2 py-1.5 md:px-3 text-sm font-medium hover:bg-gray-100 transition-colors flex-shrink-0"
             >
               ← Back
             </button>
-            <h1 className="text-3xl font-medium tracking-wide font-italiana">My Bookshelf</h1>
+            <h1 className="text-xl md:text-3xl font-medium tracking-wide font-italiana truncate">My Bookshelf</h1>
           </div>
           <button
             onClick={() => (showAddForm ? handleCancelAdd() : setShowAddForm(true))}
-            className="bg-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-100 transition-colors"
+            className="bg-white rounded-lg px-3 py-2 md:px-4 text-sm font-medium hover:bg-gray-100 transition-colors flex-shrink-0"
           >
             {showAddForm ? "Cancel" : "+ Add Book"}
           </button>
@@ -354,20 +395,19 @@ export default function Bookshelf() {
         )}
 
         {/* Tab navigation */}
-        <div className="flex border-b border-gray-200 bg-white px-6">
+        <div className="flex border-b border-gray-200 bg-white">
           {TABS.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex-1 px-2 py-3 md:px-6 md:py-4 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === key
                   ? "border-[#6b8b67] text-[#6b8b67]"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               {label}
-              {/* Badge showing count for each tab */}
-              <span className="ml-2 bg-[#dfe9d9] text-[#6b8b67] text-xs rounded-full px-2 py-0.5">
+              <span className="ml-1 md:ml-2 bg-[#dfe9d9] text-[#6b8b67] text-xs rounded-full px-1.5 md:px-2 py-0.5">
                 {shelf[key].length}
               </span>
             </button>
@@ -413,12 +453,12 @@ export default function Bookshelf() {
                     </div>
 
                     {/* Star rating */}
-                    <div className="flex gap-0.5 mt-3">
+                    <div className="flex gap-1 mt-3">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           onClick={() => handleRating(book.book_id, star)}
-                          className="text-lg leading-none hover:scale-110 transition-transform"
+                          className="text-xl md:text-lg leading-none hover:scale-110 transition-transform py-1 px-0.5"
                         >
                           {star <= (book.rating || 0) ? "★" : "☆"}
                         </button>
@@ -436,13 +476,64 @@ export default function Bookshelf() {
                         <option value="reading">Reading</option>
                         <option value="finished">Finished</option>
                       </select>
-                      <button
-                        onClick={() => handleRemove(book.book_id)}
-                        className="text-xs text-red-600 hover:underline"
-                      >
-                        Remove
-                      </button>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => {
+                            if (expandedBookId === book.book_id) {
+                              setExpandedBookId(null);
+                            } else {
+                              setExpandedBookId(book.book_id);
+                              setReviewDraft(book.review || "");
+                            }
+                          }}
+                          className="text-xs text-[#4a6b47] hover:underline"
+                        >
+                          {expandedBookId === book.book_id ? "Close" : "Review"}
+                        </button>
+                        <button
+                          onClick={() => handleRemove(book.book_id)}
+                          className="text-xs text-red-600 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
+
+                    {/* Saved review display */}
+                    {book.review && expandedBookId !== book.book_id && (
+                      <div className="mt-2 bg-white/60 rounded-lg px-3 py-2">
+                        <p className="text-xs text-gray-700 italic">"{book.review}"</p>
+                        {book.reviewed_at && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(book.reviewed_at).toLocaleDateString("en-US", {
+                              year: "numeric", month: "short", day: "numeric",
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Expandable review editor */}
+                    {expandedBookId === book.book_id && (
+                      <div className="mt-3">
+                        <textarea
+                          value={reviewDraft}
+                          onChange={(e) => setReviewDraft(e.target.value)}
+                          placeholder="Write your review..."
+                          rows={3}
+                          className="w-full text-xs rounded-lg bg-white px-3 py-2 border border-gray-300 resize-none"
+                        />
+                        <button
+                          onClick={async () => {
+                            await handleSaveReview(book.book_id, reviewDraft);
+                            setExpandedBookId(null);
+                          }}
+                          className="mt-1 text-xs bg-white rounded-lg px-3 py-1.5 font-medium hover:bg-gray-100 transition-colors"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

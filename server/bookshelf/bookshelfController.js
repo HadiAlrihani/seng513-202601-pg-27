@@ -9,7 +9,7 @@ export const getBookshelf = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT ub.book_id, ub.read_status, ub.date_started, ub.date_finished,
-              ub.rating, ub.review, ub.is_favorite,
+              ub.rating, ub.review, ub.reviewed_at, ub.is_favorite,
               b.title, b.author, b.cover_image, b.book_length
        FROM user_books ub
        JOIN books b ON ub.book_id = b.id
@@ -107,7 +107,7 @@ export const addBookFromSearch = async (req, res) => {
 
     const result = await pool.query(
       `SELECT ub.book_id, ub.read_status, ub.date_started, ub.date_finished,
-              ub.rating, ub.review, ub.is_favorite,
+              ub.rating, ub.review, ub.reviewed_at, ub.is_favorite,
               b.title, b.author, b.cover_image, b.book_length
        FROM user_books ub
        JOIN books b ON ub.book_id = b.id
@@ -162,7 +162,7 @@ export const addBook = async (req, res) => {
     // Return the full row (existing or newly inserted) with book details
     const result = await pool.query(
       `SELECT ub.book_id, ub.read_status, ub.date_started, ub.date_finished,
-              ub.rating, ub.review, ub.is_favorite,
+              ub.rating, ub.review, ub.reviewed_at, ub.is_favorite,
               b.title, b.author, b.cover_image, b.book_length
        FROM user_books ub
        JOIN books b ON ub.book_id = b.id
@@ -212,6 +212,8 @@ export const updateBook = async (req, res) => {
   if (review !== undefined) {
     updates.push(`review = $${idx++}`);
     values.push(review);
+    updates.push(`reviewed_at = $${idx++}`);
+    values.push(review ? new Date() : null);
   }
   if (is_favorite !== undefined) {
     updates.push(`is_favorite = $${idx++}`);
