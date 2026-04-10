@@ -68,15 +68,15 @@ CREATE TABLE users (
 );
 
 CREATE TABLE user_friends (
-    friend1_id INTEGER REFERENCES users(id),
-    friend2_id INTEGER REFERENCES users(id),
+    friend1_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    friend2_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     PRIMARY KEY (friend1_id, friend2_id)
 );
 
 --Associates users with books (many-to-many relationsihp)
 CREATE TABLE user_books (
-    user_id INTEGER REFERENCES users(id),
-    book_id INTEGER REFERENCES books(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, book_id),
     date_started DATE,
     date_finished DATE,
@@ -92,8 +92,8 @@ CREATE TABLE user_books (
 --Users can associate themselves with genres they like
 --Associates users with genres (many-to-many relationship)
 CREATE TABLE user_genres (
-    user_id INTEGER REFERENCES users(id),
-    genre_id INTEGER REFERENCES genres(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    genre_id INTEGER REFERENCES genres(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, genre_id)
 );
 
@@ -101,23 +101,23 @@ CREATE TABLE user_genres (
 --Associates books with genres (many-to-many relationship)
 --Prevents us from storing book genres as a list in the books table
 CREATE TABLE book_genres (
-    book_id INTEGER REFERENCES books(id),
-    genre_id INTEGER REFERENCES genres(id),
+    book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+    genre_id INTEGER REFERENCES genres(id) ON DELETE CASCADE,
     PRIMARY KEY (book_id, genre_id)
 );
 
 
 --Associates users with authors they want to follow (many-to-many relationship)
 CREATE TABLE user_authors (
-    user_id INTEGER REFERENCES users(id),
-    author_id INTEGER REFERENCES authors(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    author_id INTEGER REFERENCES authors(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, author_id)
 );
 
 
 --each entry is a checkpoint/thread in a bookclub
 CREATE TABLE checkpoints (
-    club_id INTEGER REFERENCES bookclubs(id),
+    club_id INTEGER REFERENCES bookclubs(id) ON DELETE CASCADE,
     checkpoint_num INTEGER NOT NULL,
     PRIMARY KEY (club_id, checkpoint_num),
     checkpoint_name TEXT NOT NULL
@@ -125,8 +125,8 @@ CREATE TABLE checkpoints (
 
 --Associates users with bookclubs (many-to-many relationship)
 CREATE TABLE bookclub_members (
-    user_id INTEGER REFERENCES users(id), 
-    club_id INTEGER REFERENCES bookclubs(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, 
+    club_id INTEGER REFERENCES bookclubs(id) ON DELETE CASCADE,
     user_role TEXT NOT NULL CHECK (user_role IN ('member', 'moderator')),
     progress_checkpoint INTEGER,
 
@@ -134,4 +134,5 @@ CREATE TABLE bookclub_members (
     --the latest checkpoint that the user has unlocked in the bookclub
     FOREIGN KEY (club_id, progress_checkpoint)
     REFERENCES checkpoints(club_id, checkpoint_num)
+    ON DELETE CASCADE
 );
