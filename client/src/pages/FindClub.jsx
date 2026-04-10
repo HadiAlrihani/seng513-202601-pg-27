@@ -1,10 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 
 function FindClub() {
-  const userId = 1;
+  const navigate = useNavigate();
+
+  const storedUserId = localStorage.getItem("userId");
+  const userId = storedUserId ? Number(storedUserId) : null;
 
   const [clubs, setClubs] = useState([]);
   const [joinedClubIds, setJoinedClubIds] = useState([]);
@@ -12,10 +15,18 @@ function FindClub() {
   const [joinCode, setJoinCode] = useState("");
   const [joiningClubId, setJoiningClubId] = useState(null);
   const [joiningByCode, setJoiningByCode] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    if (!userId) {
+      navigate("/");
+      return;
+    }
+
     const load = async () => {
       try {
+        setErrorMessage("");
+
         const [clubsRes, userRes] = await Promise.all([
           fetch("http://localhost:5000/bookclubs/public"),
           fetch(`http://localhost:5000/bookclubs/user/${userId}`),
@@ -24,18 +35,27 @@ function FindClub() {
         const clubsData = await clubsRes.json();
         const userData = await userRes.json();
 
+        if (!clubsRes.ok) {
+          throw new Error(clubsData.error || "Failed to load clubs");
+        }
+
+        if (!userRes.ok) {
+          throw new Error(userData.error || "Failed to load user clubs");
+        }
+
         setClubs(clubsData);
         setJoinedClubIds(userData.map((c) => c.id));
       } catch (error) {
         console.error("Error loading clubs:", error);
+        setErrorMessage(error.message || "Something went wrong");
       }
     };
 
     load();
-  }, []);
+  }, [userId, navigate]);
 
   const handleJoin = async (clubId) => {
-    if (joiningClubId || joinedClubIds.includes(clubId)) return;
+    if (!userId || joiningClubId || joinedClubIds.includes(clubId)) return;
 
     setJoiningClubId(clubId);
 
@@ -48,9 +68,10 @@ function FindClub() {
         body: JSON.stringify({ userId, clubId }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        alert("Failed to join");
-        setJoiningClubId(null);
+        alert(data.error || "Failed to join");
         return;
       }
 
@@ -72,7 +93,7 @@ function FindClub() {
   };
 
   const handleJoinByCode = async () => {
-    if (!joinCode.trim() || joiningByCode) return;
+    if (!userId || !joinCode.trim() || joiningByCode) return;
 
     setJoiningByCode(true);
 
@@ -89,7 +110,6 @@ function FindClub() {
 
       if (!res.ok) {
         alert(data.error || "Failed");
-        setJoiningByCode(false);
         return;
       }
 
@@ -109,7 +129,10 @@ function FindClub() {
             );
           }
 
-          return [...prev, { ...data.club, number_members: data.club.number_members + 1 }];
+          return [
+            ...prev,
+            { ...data.club, number_members: data.club.number_members + 1 },
+          ];
         });
       }
 
@@ -186,43 +209,49 @@ function FindClub() {
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((club) => {
-            const isFull = club.number_members >= club.max_members;
-            const isJoined = joinedClubIds.includes(club.id);
+        {errorMessage ? (
+          <div className="bg-white/80 border border-red-200 rounded-[24px] p-6 text-red-600">
+            {errorMessage}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((club) => {
+              const isFull = club.number_members >= club.max_members;
+              const isJoined = joinedClubIds.includes(club.id);
 
-            return (
-              <div
-                key={club.id}
-                className="bg-[#b8d1b0] p-5 rounded-xl flex flex-col justify-between"
-              >
-                <div>
-                  <h3 className="font-semibold">{club.book_title}</h3>
-                  <p className="text-sm mt-1">• {club.number_members} members</p>
+              return (
+                <div
+                  key={club.id}
+                  className="bg-[#b8d1b0] p-5 rounded-xl flex flex-col justify-between"
+                >
+                  <div>
+                    <h3 className="font-semibold">{club.book_title}</h3>
+                    <p className="text-sm mt-1">• {club.number_members} members</p>
 
-                  <p className="mt-2 font-medium">{club.club_name}</p>
-                  <p className="text-sm mt-1">{club.club_description}</p>
+                    <p className="mt-2 font-medium">{club.club_name}</p>
+                    <p className="text-sm mt-1">{club.club_description}</p>
+                  </div>
+
+                  <div className="flex justify-end mt-4">
+                    <button
+                      disabled={isFull || isJoined}
+                      onClick={() => handleJoin(club.id)}
+                      className={`px-4 py-2 rounded ${
+                        isFull
+                          ? "bg-red-400 text-white"
+                          : isJoined
+                          ? "bg-green-600 text-white"
+                          : "bg-white"
+                      }`}
+                    >
+                      {isFull ? "Full" : isJoined ? "Joined" : "Join"}
+                    </button>
+                  </div>
                 </div>
-
-                <div className="flex justify-end mt-4">
-                  <button
-                    disabled={isFull || isJoined}
-                    onClick={() => handleJoin(club.id)}
-                    className={`px-4 py-2 rounded ${
-                      isFull
-                        ? "bg-red-400 text-white"
-                        : isJoined
-                        ? "bg-green-600 text-white"
-                        : "bg-white"
-                    }`}
-                  >
-                    {isFull ? "Full" : isJoined ? "Joined" : "Join"}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <MobileNavbar />

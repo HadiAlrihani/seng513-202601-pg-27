@@ -48,8 +48,10 @@ export const joinClub = async (req, res) => {
     }
 
     await pool.query(
-      `INSERT INTO bookclub_members (user_id, club_id, user_role, progress_checkpoint)
-       VALUES ($1, $2, $3, $4)`,
+      `
+      INSERT INTO bookclub_members (user_id, club_id, user_role, progress_checkpoint)
+      VALUES ($1, $2, $3, $4)
+      `,
       [userId, clubId, "member", null]
     );
 
@@ -103,8 +105,10 @@ export const joinClubByCode = async (req, res) => {
     }
 
     await pool.query(
-      `INSERT INTO bookclub_members (user_id, club_id, user_role, progress_checkpoint)
-       VALUES ($1, $2, $3, $4)`,
+      `
+      INSERT INTO bookclub_members (user_id, club_id, user_role, progress_checkpoint)
+      VALUES ($1, $2, $3, $4)
+      `,
       [userId, club.id, "member", null]
     );
 
@@ -133,7 +137,10 @@ export const getUserClubs = async (req, res) => {
   try {
     const result = await pool.query(
       `
-      SELECT b.*
+      SELECT
+        b.*,
+        m.user_role,
+        m.progress_checkpoint
       FROM bookclubs b
       JOIN bookclub_members m ON b.id = m.club_id
       WHERE m.user_id = $1
