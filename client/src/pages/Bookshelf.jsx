@@ -28,6 +28,9 @@ export default function Bookshelf() {
   const [addStatus, setAddStatus] = useState("to_read");
   const [addError, setAddError] = useState("");
 
+  // Error for status change / remove failures
+  const [actionError, setActionError] = useState("");
+
   // Google Books search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -56,8 +59,7 @@ export default function Bookshelf() {
       .finally(() => setLoading(false));
   }, [navigate]);
 
-  // Search Google Books via the backend, which retries internally for up to 12 seconds.
-  // The frontend just waits for one response.
+  // Search Open Library via the backend. The frontend waits for one response.
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -87,28 +89,33 @@ export default function Bookshelf() {
     }
   };
 
-  // Add the selected Google Book to the shelf via POST /bookshelf/from-google
+  // Add the selected search result to the shelf via POST /bookshelf/from-google
   const handleAddBook = async (e) => {
     e.preventDefault();
     if (!selectedBook) return;
     const token = localStorage.getItem("token");
     setAddError("");
 
-    const res = await fetch("http://localhost:5000/bookshelf/from-google", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ googleBook: selectedBook, read_status: addStatus }),
-    });
+    try {
+      const res = await fetch("http://localhost:5000/bookshelf/from-google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ googleBook: selectedBook, read_status: addStatus }),
+      });
 
-    if (res.status === 409) {
-      setAddError("This book is already on your shelf.");
-      return;
-    }
+      if (res.status === 409) {
+        setAddError("This book is already on your shelf.");
+        return;
+      }
 
-    if (res.ok) {
+      if (!res.ok) {
+        setAddError("Failed to add book. Please try again.");
+        return;
+      }
+
       const newEntry = await res.json();
       setShelf((prev) => ({
         ...prev,
@@ -120,6 +127,8 @@ export default function Bookshelf() {
       setSelectedBook(null);
       setAddError("");
       setActiveTab(newEntry.read_status);
+    } catch {
+      setAddError("Failed to add book. Please try again.");
     }
   };
 
@@ -136,18 +145,23 @@ export default function Bookshelf() {
   // Move a book to a different status bucket via PATCH /bookshelf/:bookId
   const handleStatusChange = async (bookId, newStatus) => {
     const token = localStorage.getItem("token");
+    setActionError("");
 
-    const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ read_status: newStatus }),
-    });
+    try {
+      const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ read_status: newStatus }),
+      });
 
-    if (res.ok) {
-      // Rebuild shelf state: update the status and re-group all entries
+      if (!res.ok) {
+        setActionError("Failed to update status. Please try again.");
+        return;
+      }
+
       setShelf((prev) => {
         const all = [...prev.to_read, ...prev.reading, ...prev.finished];
         const updated = all.map((b) =>
@@ -159,24 +173,34 @@ export default function Bookshelf() {
           finished: updated.filter((b) => b.read_status === "finished"),
         };
       });
+    } catch {
+      setActionError("Failed to update status. Please try again.");
     }
   };
 
   // Remove a book from the shelf via DELETE /bookshelf/:bookId
   const handleRemove = async (bookId) => {
     const token = localStorage.getItem("token");
+    setActionError("");
 
-    const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    if (res.ok) {
+      if (!res.ok) {
+        setActionError("Failed to remove book. Please try again.");
+        return;
+      }
+
       setShelf((prev) => ({
         to_read: prev.to_read.filter((b) => b.book_id !== bookId),
         reading: prev.reading.filter((b) => b.book_id !== bookId),
         finished: prev.finished.filter((b) => b.book_id !== bookId),
       }));
+    } catch {
+      setActionError("Failed to remove book. Please try again.");
     }
   };
 
@@ -205,7 +229,7 @@ export default function Bookshelf() {
           </button>
         </header>
 
-        {/* Collapsible add-book panel with Google Books search */}
+        {/* Collapsible add-book panel with Open Library search */}
         {showAddForm && (
           <div className="px-6 py-4 bg-[#e9eee6] border-b border-gray-200">
             {/* Search input */}
@@ -317,6 +341,9 @@ export default function Bookshelf() {
 
         {/* Book list for the active tab */}
         <section className="px-6 py-8">
+          {actionError && (
+            <p className="text-sm text-red-500 mb-4">{actionError}</p>
+          )}
           {loading && (
             <p className="text-center text-gray-500 py-12">Loading your bookshelf...</p>
           )}

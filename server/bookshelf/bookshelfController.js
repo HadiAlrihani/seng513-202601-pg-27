@@ -63,9 +63,9 @@ export const searchGoogleBooks = async (req, res) => {
 };
 
 // POST /bookshelf/from-google
-// Upserts a Google Books result into the books table, then adds it to the user's shelf.
+// Upserts a book from the Open Library search into the books table, then adds it to the user's shelf.
 // Body: { googleBook: { google_books_id, title, author, cover_image, book_length, book_description }, read_status }
-export const addBookFromGoogle = async (req, res) => {
+export const addBookFromSearch = async (req, res) => {
   const { googleBook, read_status } = req.body;
   const validStatuses = ["to_read", "reading", "finished"];
 
@@ -79,7 +79,7 @@ export const addBookFromGoogle = async (req, res) => {
   const date_finished = read_status === "finished" ? new Date() : null;
 
   try {
-    // Upsert the book by google_books_id so we never create duplicates
+    // Upsert the book by external ID so we never create duplicates
     const bookResult = await pool.query(
       `INSERT INTO books (google_books_id, title, author, cover_image, book_length, book_description)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -117,7 +117,7 @@ export const addBookFromGoogle = async (req, res) => {
 
     return res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Error adding book from Google:", err);
+    console.error("Error adding book:", err);
     return res.status(500).json({ error: "Failed to add book" });
   }
 };
