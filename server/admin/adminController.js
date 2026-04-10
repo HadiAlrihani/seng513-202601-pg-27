@@ -41,3 +41,44 @@ export const deleteUser = async (req, res) => {
     return res.status(500).json({ error: "Failed to delete user" });
   }
 };
+
+// GET /admin/clubs
+// Returns all book clubs with member count.
+export const getAllClubs = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT b.id, b.book_title, b.club_name, b.visibility,
+              COUNT(m.user_id) AS member_count
+       FROM bookclubs b
+       LEFT JOIN bookclub_members m ON m.club_id = b.id
+       GROUP BY b.id
+       ORDER BY b.club_name ASC`
+    );
+    return res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching clubs:", err);
+    return res.status(500).json({ error: "Failed to fetch clubs" });
+  }
+};
+
+// DELETE /admin/clubs/:clubId
+// Deletes a book club.
+export const deleteClub = async (req, res) => {
+  const clubId = parseInt(req.params.clubId);
+
+  try {
+    const result = await pool.query(
+      "DELETE FROM bookclubs WHERE id = $1 RETURNING id, club_name",
+      [clubId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Club not found" });
+    }
+
+    return res.status(200).json({ message: "Club deleted", club: result.rows[0] });
+  } catch (err) {
+    console.error("Error deleting club:", err);
+    return res.status(500).json({ error: "Failed to delete club" });
+  }
+};
