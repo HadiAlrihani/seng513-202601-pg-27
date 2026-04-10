@@ -141,7 +141,7 @@ export default function Profile() {
             
             <div className="flex flex-1 items-center md-computer:hidden">
                 <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
-                    <button 
+                    <button onClick={() => navigate('/bookshelf')}
                     className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
                     md-computer:h-[10vw] md-computer:w-[10vw]">
                         <img src={closed_book} 
@@ -150,7 +150,7 @@ export default function Profile() {
                     <h1 className="pt-2 font-inter text-center md:text-2xl md-computer:text-lg">Your Library</h1>
                 </div>
                 <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
-                    <button 
+                    <button onClick={() => navigate('/my-clubs')}
                     className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
                     md-computer:h-[10vw] md-computer:w-[10vw]">
                         <img src={club} 
