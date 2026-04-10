@@ -36,6 +36,7 @@ export default function Login() {
                 localStorage.setItem("email", data.user.email);
                 localStorage.setItem("token", data.token);
 
+
                 navigate("/home");
             } else {
                 setErrorMessage(data.error || "Login failed.");
