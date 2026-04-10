@@ -40,10 +40,10 @@ INSERT INTO authors (author_name) VALUES
 
 INSERT INTO bookclubs (book_id, book_title, club_name, club_code, number_members, max_members, 
 club_description, visibility) VALUES
-(1, 'Dune', 'Dune Deep Dive', NULL, 20, 20, 'Analyze themes and world-building in Dune.', 'public'),
-(2,'The Hunger Games', 'Hunger Games book club', NULL, 2, 10, 'Book Club for The Hunger Games', 'public'),
-(2, 'The Hunger Games', 'Elite Hunger Club', 'HG999', 3, 10, 'Invite-only Hunger Games discussion.', 'private'),
-(3, 'A Game of Thrones (HBO Tie-in Edition)', 'Westeros Politics Club', NULL, 6, 20, 'Discuss power, betrayal, and strategy.', 'public');
+(1, 'Dune', 'Dune Deep Dive', NULL, 1, 20, 'Analyze themes and world-building in Dune.', 'public'),
+(2, 'The Hunger Games', 'Hunger Games book club', NULL, 2, 10, 'Book Club for The Hunger Games', 'public'),
+(2, 'The Hunger Games', 'Elite Hunger Club', 'HG999', 1, 10, 'Invite-only Hunger Games discussion.', 'private'),
+(3, 'A Game of Thrones (HBO Tie-in Edition)', 'Westeros Politics Club', NULL, 1, 20, 'Discuss power, betrayal, and strategy.', 'public');
 
 INSERT INTO users (username, email, user_password, last_updated_id, last_updated_club) VALUES
 
@@ -51,10 +51,18 @@ INSERT INTO users (username, email, user_password, last_updated_id, last_updated
 ('admin', 'admin.email@gmail.com', '$2b$10$MMxloxulFa3HmlnS1NaTyey0unknfEjQd1uFXTlAHiITCtKmDALym', NULL, NULL),
 
 /*The password for moderator is mod123*/
-('club_moderator', 'mod@gmail.com', '$2b$10$mLcdM6lmDlxTvSmrpS4/tOZAhuyLiazMy5j7sNFR6.PTPfud3DocK', 2, 1),
+('club_moderator', 'mod@gmail.com', '$2b$10$mLcdM6lmDlxTvSmrpS4/tOZAhuyLiazMy5j7sNFR6.PTPfud3DocK', NULL, NULL),
 
 /*The password for enjoyer is books123*/
-('book_enjoyer', 'reader@gmail.com', '$2b$10$qkblFxORoJrK0jup2P42VOCIpEuxoLGSWqUKJWHEz.mRTzY0BEsmu', 2, 1);
+('book_enjoyer', 'reader@gmail.com', '$2b$10$qkblFxORoJrK0jup2P42VOCIpEuxoLGSWqUKJWHEz.mRTzY0BEsmu', NULL, NULL);
+
+UPDATE users
+SET last_updated_id = 2, last_updated_club = 1
+WHERE username = 'club_moderator';
+
+UPDATE users
+SET last_updated_id = 2, last_updated_club = 2
+WHERE username = 'book_enjoyer';
 
 INSERT INTO user_friends (friend1_id, friend2_id) VALUES
 (2, 3);
@@ -96,19 +104,14 @@ INSERT INTO checkpoints (club_id, checkpoint_num, checkpoint_name) VALUES
 
 INSERT INTO bookclub_members (user_id, club_id, user_role, progress_checkpoint) VALUES
 (2, 1, 'moderator', 3),
-(3, 1, 'member', 2),
 (2, 2, 'moderator', 1),
 (3, 2, 'member', 1),
 (2, 3, 'moderator', 2),
-(3, 3, 'member', 1),
-(2, 4, 'moderator', 2),
-(3, 4, 'member', 1);
+(2, 4, 'moderator', 2);
 
 INSERT INTO checkpoint_messages (club_id, checkpoint_num, user_id, message_text) VALUES
 (1, 1, 2, 'Welcome everyone. Keep this checkpoint spoiler-safe and focused on Chapter 1 only.'),
-(1, 1, 3, 'I already like the opening world-building a lot.'),
 (1, 2, 2, 'Chapter 2 adds much more political tension.'),
-(1, 2, 3, 'Agreed. It feels much bigger now.'),
 (1, 3, 2, 'This checkpoint is where the pacing really starts to build.'),
 
 (2, 1, 2, 'Let’s keep this first discussion focused on the opening setup.'),
@@ -116,9 +119,7 @@ INSERT INTO checkpoint_messages (club_id, checkpoint_num, user_id, message_text)
 (2, 2, 2, 'This part makes the stakes feel much more personal.'),
 
 (3, 1, 2, 'Welcome to the private Hunger Games discussion. Please keep this checkpoint spoiler-safe.'),
-(3, 1, 3, 'The opening already sets up the pressure really well.'),
 (3, 2, 2, 'This checkpoint is where strategy starts to matter a lot more.'),
 
 (4, 1, 2, 'Let’s focus on the early political setup only for this checkpoint.'),
-(4, 1, 3, 'There are already so many competing interests in the opening chapters.'),
 (4, 2, 2, 'Mid-book is where the power dynamics become much clearer.');

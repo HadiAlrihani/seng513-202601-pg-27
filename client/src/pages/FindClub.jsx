@@ -227,7 +227,6 @@ function FindClub() {
                   <div>
                     <h3 className="font-semibold">{club.book_title}</h3>
                     <p className="text-sm mt-1">• {club.number_members} members</p>
-
                     <p className="mt-2 font-medium">{club.club_name}</p>
                     <p className="text-sm mt-1">{club.club_description}</p>
                   </div>

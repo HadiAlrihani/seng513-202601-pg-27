@@ -8,7 +8,7 @@ function ClubDiscussion() {
     const { clubId } = useParams();
 
     const storedUserId = localStorage.getItem("userId");
-    const userId = storedUserId ? Number(storedUserId) : 1;
+    const userId = storedUserId ? Number(storedUserId) : null;
     const username = localStorage.getItem("username") || "Reader";
 
     const [club, setClub] = useState(null);
@@ -36,6 +36,11 @@ function ClubDiscussion() {
     }, [checkpoints, selectedCheckpoint]);
 
     const loadClubData = async () => {
+        if (!userId) {
+            navigate("/");
+            return;
+        }
+
         try {
             setIsLoadingPage(true);
             setPageError("");
@@ -77,7 +82,7 @@ function ClubDiscussion() {
     };
 
     const loadMessages = async (checkpointNum) => {
-        if (!checkpointNum) return;
+        if (!userId || !checkpointNum) return;
 
         try {
             setIsLoadingMessages(true);
@@ -104,7 +109,7 @@ function ClubDiscussion() {
 
     useEffect(() => {
         loadClubData();
-    }, [clubId]);
+    }, [clubId, userId]);
 
     useEffect(() => {
         if (selectedCheckpointData?.is_unlocked) {
@@ -113,10 +118,10 @@ function ClubDiscussion() {
             setMessages([]);
             setMessageError("");
         }
-    }, [selectedCheckpoint, selectedCheckpointData?.is_unlocked]);
+    }, [selectedCheckpoint, selectedCheckpointData?.is_unlocked, userId]);
 
     const handleProgressUpdate = async () => {
-        if (!progressValue) return;
+        if (!progressValue || !userId) return;
 
         try {
             setIsUpdatingProgress(true);
@@ -153,7 +158,7 @@ function ClubDiscussion() {
     const handlePostMessage = async (e) => {
         e.preventDefault();
 
-        if (!messageText.trim() || !selectedCheckpointData?.is_unlocked) return;
+        if (!userId || !messageText.trim() || !selectedCheckpointData?.is_unlocked) return;
 
         try {
             setIsPostingMessage(true);

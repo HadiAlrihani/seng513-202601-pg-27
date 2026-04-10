@@ -1,10 +1,7 @@
-// Handles logic for register and login
-
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { pool } from "./dbConfig.js";
 
-// Register a new user
 export const registerUser = async (req, res) => {
   const { email, username, user_password } = req.body;
 
@@ -46,12 +43,11 @@ export const registerUser = async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Register error:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
-// Login user
 export const loginUser = async (req, res) => {
   const { username_or_email, user_password } = req.body;
 
@@ -96,7 +92,7 @@ export const loginUser = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Login error:", err);
     res.status(500).json({ error: "Server error" });
   }
 };

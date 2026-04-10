@@ -40,7 +40,7 @@ export default function Login() {
                 setErrorMessage(data.error || "Login failed");
             }
         } catch (err) {
-            console.error("Error: ", err);
+            console.error("Error:", err);
             setErrorMessage("Could not connect to server");
         }
     };
