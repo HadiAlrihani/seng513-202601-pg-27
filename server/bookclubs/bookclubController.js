@@ -119,7 +119,7 @@ export const joinClubByCode = async (req, res) => {
     });
   } catch (error) {
     console.error("Error joining club by code:", error);
-    return res.status(500).json({ error: "Failed to join club" });
+    return res.status(500).json({ error: "Failed to join club by code" });
   }
 };
 
@@ -133,7 +133,10 @@ export const getUserClubs = async (req, res) => {
   try {
     const result = await pool.query(
       `
-      SELECT b.*
+      SELECT
+        b.*,
+        m.user_role,
+        m.progress_checkpoint
       FROM bookclubs b
       JOIN bookclub_members m ON b.id = m.club_id
       WHERE m.user_id = $1

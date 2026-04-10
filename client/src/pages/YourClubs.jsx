@@ -6,8 +6,9 @@ import MobileNavbar from "../components/MobileNavbar";
 function YourClubs() {
     const navigate = useNavigate();
 
-    const storedUserId = localStorage.getItem("userId");
-    const userId = storedUserId ? Number(storedUserId) : 1;
+    const storedUserId =
+        localStorage.getItem("userId") || localStorage.getItem("wormly_id");
+    const userId = storedUserId ? Number(storedUserId) : null;
 
     const [clubs, setClubs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +16,11 @@ function YourClubs() {
     const [leavingClubId, setLeavingClubId] = useState(null);
 
     const loadUserClubs = async () => {
+        if (!userId) {
+            navigate("/");
+            return;
+        }
+
         try {
             setIsLoading(true);
             setErrorMessage("");
@@ -40,6 +46,11 @@ function YourClubs() {
     }, [userId]);
 
     const handleLeave = async (clubId) => {
+        if (!userId) {
+            navigate("/");
+            return;
+        }
+
         try {
             setLeavingClubId(clubId);
 
@@ -121,7 +132,7 @@ function YourClubs() {
                                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                     <div className="max-w-2xl">
                                         <p className="text-xs uppercase tracking-wide text-zinc-600">
-                                            {club.user_role} · {club.number_members} members
+                                            {club.user_role || "member"} · {club.number_members} members
                                         </p>
 
                                         <h2 className="font-playfair text-2xl mt-1">

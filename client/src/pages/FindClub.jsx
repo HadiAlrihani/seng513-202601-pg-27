@@ -1,10 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 
 function FindClub() {
-  const userId = 1;
+  const navigate = useNavigate();
+
+  const storedUserId =
+    localStorage.getItem("userId") || localStorage.getItem("wormly_id");
+  const userId = storedUserId ? Number(storedUserId) : null;
 
   const [clubs, setClubs] = useState([]);
   const [joinedClubIds, setJoinedClubIds] = useState([]);
@@ -12,10 +16,18 @@ function FindClub() {
   const [joinCode, setJoinCode] = useState("");
   const [joiningClubId, setJoiningClubId] = useState(null);
   const [joiningByCode, setJoiningByCode] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    if (!userId) {
+      navigate("/");
+      return;
+    }
+
     const load = async () => {
       try {
+        setErrorMessage("");
+
         const [clubsRes, userRes] = await Promise.all([
           fetch("http://localhost:5000/bookclubs/public"),
           fetch(`http://localhost:5000/bookclubs/user/${userId}`),
@@ -24,17 +36,31 @@ function FindClub() {
         const clubsData = await clubsRes.json();
         const userData = await userRes.json();
 
+        if (!clubsRes.ok) {
+          throw new Error(clubsData.error || "Failed to load public clubs.");
+        }
+
+        if (!userRes.ok) {
+          throw new Error(userData.error || "Failed to load your clubs.");
+        }
+
         setClubs(clubsData);
         setJoinedClubIds(userData.map((c) => c.id));
       } catch (error) {
         console.error("Error loading clubs:", error);
+        setErrorMessage(error.message || "Unable to load clubs.");
       }
     };
 
     load();
-  }, []);
+  }, [userId, navigate]);
 
   const handleJoin = async (clubId) => {
+    if (!userId) {
+      navigate("/");
+      return;
+    }
+
     if (joiningClubId || joinedClubIds.includes(clubId)) return;
 
     setJoiningClubId(clubId);
@@ -48,9 +74,10 @@ function FindClub() {
         body: JSON.stringify({ userId, clubId }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        alert("Failed to join");
-        setJoiningClubId(null);
+        alert(data.error || "Failed to join");
         return;
       }
 
@@ -72,6 +99,11 @@ function FindClub() {
   };
 
   const handleJoinByCode = async () => {
+    if (!userId) {
+      navigate("/");
+      return;
+    }
+
     if (!joinCode.trim() || joiningByCode) return;
 
     setJoiningByCode(true);
@@ -89,7 +121,6 @@ function FindClub() {
 
       if (!res.ok) {
         alert(data.error || "Failed");
-        setJoiningByCode(false);
         return;
       }
 
@@ -109,7 +140,10 @@ function FindClub() {
             );
           }
 
-          return [...prev, { ...data.club, number_members: data.club.number_members + 1 }];
+          return [
+            ...prev,
+            { ...data.club, number_members: data.club.number_members + 1 },
+          ];
         });
       }
 
@@ -176,6 +210,10 @@ function FindClub() {
               {joiningByCode ? "Joining..." : "Join by Code"}
             </button>
           </div>
+
+          {errorMessage ? (
+            <p className="text-red-600 mt-4">{errorMessage}</p>
+          ) : null}
         </div>
 
         <div className="flex justify-between items-center mt-6 mb-4">
@@ -206,7 +244,7 @@ function FindClub() {
 
                 <div className="flex justify-end mt-4">
                   <button
-                    disabled={isFull || isJoined}
+                    disabled={isFull || isJoined || joiningClubId === club.id}
                     onClick={() => handleJoin(club.id)}
                     className={`px-4 py-2 rounded ${
                       isFull
@@ -216,7 +254,13 @@ function FindClub() {
                         : "bg-white"
                     }`}
                   >
-                    {isFull ? "Full" : isJoined ? "Joined" : "Join"}
+                    {joiningClubId === club.id
+                      ? "Joining..."
+                      : isFull
+                      ? "Full"
+                      : isJoined
+                      ? "Joined"
+                      : "Join"}
                   </button>
                 </div>
               </div>
