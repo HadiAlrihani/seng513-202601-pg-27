@@ -26,6 +26,7 @@ export default function Bookshelf() {
   // Add book form state
   const [showAddForm, setShowAddForm] = useState(false);
   const [addStatus, setAddStatus] = useState("to_read");
+  const [addError, setAddError] = useState("");
 
   // Google Books search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,10 +56,12 @@ export default function Bookshelf() {
       .finally(() => setLoading(false));
   }, [navigate]);
 
-  // Search Google Books directly from the browser (avoids Docker networking issues)
+  // Search Google Books via the backend, which retries internally for up to 12 seconds.
+  // The frontend just waits for one response.
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
+    const token = localStorage.getItem("token");
     setSearchLoading(true);
     setSearchPerformed(false);
     setSearchError("");
@@ -67,30 +70,18 @@ export default function Bookshelf() {
 
     try {
       const res = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery)}&maxResults=10&printType=books`
+        `http://localhost:5000/bookshelf/search?q=${encodeURIComponent(searchQuery)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (!res.ok) {
-        setSearchError("Search failed. Please try again.");
-        return;
-      }
       const data = await res.json();
-      const results = (data.items || []).map((item) => {
-        const info = item.volumeInfo;
-        return {
-          google_books_id: item.id,
-          title: info.title || "Unknown Title",
-          author: (info.authors || ["Unknown Author"]).join(", "),
-          cover_image: info.imageLinks?.thumbnail
-            ? info.imageLinks.thumbnail.replace("http://", "https://")
-            : null,
-          book_length: info.pageCount || 0,
-          book_description: info.description || null,
-        };
-      });
-      setSearchResults(results);
-      setSearchPerformed(true);
+      if (data.length === 0) {
+        setSearchError(`No results found for "${searchQuery}". Try a different title or author.`);
+      } else {
+        setSearchResults(data);
+        setSearchPerformed(true);
+      }
     } catch {
-      setSearchError("Could not reach Google Books. Please try again.");
+      setSearchError("Could not reach the server. Please try again.");
     } finally {
       setSearchLoading(false);
     }
@@ -101,6 +92,7 @@ export default function Bookshelf() {
     e.preventDefault();
     if (!selectedBook) return;
     const token = localStorage.getItem("token");
+    setAddError("");
 
     const res = await fetch("http://localhost:5000/bookshelf/from-google", {
       method: "POST",
@@ -110,6 +102,11 @@ export default function Bookshelf() {
       },
       body: JSON.stringify({ googleBook: selectedBook, read_status: addStatus }),
     });
+
+    if (res.status === 409) {
+      setAddError("This book is already on your shelf.");
+      return;
+    }
 
     if (res.ok) {
       const newEntry = await res.json();
@@ -121,6 +118,7 @@ export default function Bookshelf() {
       setSearchQuery("");
       setSearchResults([]);
       setSelectedBook(null);
+      setAddError("");
       setActiveTab(newEntry.read_status);
     }
   };
@@ -132,6 +130,7 @@ export default function Bookshelf() {
     setSearchPerformed(false);
     setSearchError("");
     setSelectedBook(null);
+    setAddError("");
   };
 
   // Move a book to a different status bucket via PATCH /bookshelf/:bookId
@@ -287,6 +286,9 @@ export default function Bookshelf() {
                 >
                   Add to Shelf
                 </button>
+                {addError && (
+                  <p className="w-full text-sm text-red-500">{addError}</p>
+                )}
               </form>
             )}
           </div>

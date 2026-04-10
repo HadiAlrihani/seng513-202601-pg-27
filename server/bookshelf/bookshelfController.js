@@ -32,7 +32,7 @@ export const getBookshelf = async (req, res) => {
 };
 
 // GET /bookshelf/search?q=...
-// Proxies a query to the Google Books API and returns normalized results.
+// Searches the Open Library API (free, no key required) and returns normalized results.
 export const searchGoogleBooks = async (req, res) => {
   const { q } = req.query;
   if (!q || !q.trim()) {
@@ -40,30 +40,24 @@ export const searchGoogleBooks = async (req, res) => {
   }
 
   try {
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=10&printType=books`;
+    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=10&fields=key,title,author_name,cover_i,number_of_pages_median`;
     const response = await fetch(url);
     const data = await response.json();
 
-    if (!data.items) return res.status(200).json([]);
-
-    const results = data.items.map((item) => {
-      const info = item.volumeInfo;
-      return {
-        google_books_id: item.id,
-        title: info.title || "Unknown Title",
-        author: (info.authors || ["Unknown Author"]).join(", "),
-        // Use HTTPS to avoid mixed-content issues in the browser
-        cover_image: info.imageLinks?.thumbnail
-          ? info.imageLinks.thumbnail.replace("http://", "https://")
-          : null,
-        book_length: info.pageCount || 0,
-        book_description: info.description || null,
-      };
-    });
+    const results = (data.docs || []).map((book) => ({
+      google_books_id: book.key,
+      title: book.title || "Unknown Title",
+      author: (book.author_name || ["Unknown Author"]).join(", "),
+      cover_image: book.cover_i
+        ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+        : null,
+      book_length: book.number_of_pages_median || 0,
+      book_description: null,
+    }));
 
     return res.status(200).json(results);
   } catch (err) {
-    console.error("Error searching Google Books:", err);
+    console.error("Open Library fetch error:", err.message);
     return res.status(500).json({ error: "Failed to search books" });
   }
 };
@@ -99,12 +93,17 @@ export const addBookFromGoogle = async (req, res) => {
 
     const bookId = bookResult.rows[0].id;
 
-    await pool.query(
+    const insertResult = await pool.query(
       `INSERT INTO user_books (user_id, book_id, read_status, date_started, date_finished)
        VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (user_id, book_id) DO NOTHING`,
+       ON CONFLICT (user_id, book_id) DO NOTHING
+       RETURNING book_id`,
       [req.userId, bookId, read_status, date_started, date_finished]
     );
+
+    if (insertResult.rows.length === 0) {
+      return res.status(409).json({ error: "This book is already on your shelf" });
+    }
 
     const result = await pool.query(
       `SELECT ub.book_id, ub.read_status, ub.date_started, ub.date_finished,
