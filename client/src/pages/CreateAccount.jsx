@@ -1,33 +1,81 @@
+import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
+
+import logo from "../assets/logo.png";
+
 export default function CreateAccount() {
+    const navigate = useNavigate();
+
+    const formRef = useRef();
+
+    const handleRegistration = async (e) => {
+        e.preventDefault()
+        const formData = new FormData(formRef.current);
+
+        const email = formData.get("email");
+        const username = formData.get("username");
+        const user_password = formData.get("password");
+
+        try {
+            const response = await fetch ("http://localhost:5000/users/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, username, user_password })
+            });
+
+            const data = await response.json();
+
+            // set username and session token, then nav directly to homepage
+            if (response.ok) {
+                console.log("Account created:", data);
+
+                localStorage.setItem("wormly_id", data.user.div)
+                localStorage.setItem("wormly_username", data.user.username);
+                localStorage.setItem("wormly_email", data.user.email);
+                localStorage.setItem("session_token", data.token);
+                navigate("/home");
+            }
+            else {
+                console.log("Creation failed: ", data.message);
+            }
+        }
+        catch (err) {
+            console.error("Error:", err);
+        }
+    }
+
     return (
-        <div className="h-full flex flex-col items-center py-[10vh] px-[10vh] md-short:py-[7vh]">
-            <h1 className="flex-1 font-italiana text-6xl md-tall:text-8xl md-short:text-5xl text-center mb-12 md-short:mb-4">
-                Wormly Connected
-            </h1>
-            <form className="flex flex-1 flex-col w-[75vw] md:w-[60vw] gap-8 md-tall:gap-12 md-short:gap-4 text-lg md:text-xl md-tall:text-2xl mb-12 md-short:mb-4">
-                <input
-                    type="text"
-                    placeholder="Username"
-                    id="username-create-input"
-                    className="h-15 md-tall:h-20 bg-[#d9d9d9] placeholder-black/65 p-4"/>
-                <input
-                    type="password"
-                    placeholder="Password"
-                    id="password-create-input"
-                    className="h-15 md-tall:h-20 bg-[#d9d9d9] placeholder-black/65 p-4"/>
+        <div className="h-full flex flex-col justify-evenly items-center py-[5vh] px-[10vh] md-short:py-[7vh]">
+            <div className="flex md-computer:w-[60vw] max-h-[25vh] items-center justify-center">
+                <img className="hidden md-computer:block max-h-[25vh]" src={logo} />
+                <h1 className="flex font-italiana text-6xl md:text-7xl md-short:text-5xl text-center">
+                    Wormly Connected
+                </h1>
+            </div>
+            <form ref={formRef} 
+            onSubmit={handleRegistration} 
+            className="flex flex-col w-[75vw] md:w-[60vw] gap-8 md-short:gap-4 text-lg md:text-2xl">
                 <input
                     type="text"
                     placeholder="Email"
-                    id="email-create-input"
-                    className="h-15 md-tall:h-20 bg-[#d9d9d9] placeholder-black/65 p-4" />
-            </form>
-            <div className="flex-1">
-                <button 
-                    id="create-account-btn"
-                    className="bg-[#D3F0D3]/80  md-tall:px-20 text-lg md:text-xl md-tall:text-3xl p-3 rounded-xl">
+                    name="email"
+                    className="h-12 md:h-20 bg-[#d9d9d9] placeholder-black/65 p-4"/>
+                <input
+                    type="text"
+                    placeholder="Username"
+                    name="username"
+                    className="h-12 md:h-20 bg-[#d9d9d9] placeholder-black/65 p-4"/>
+                <input
+                    type="password"
+                    placeholder="Password"
+                    name="password"
+                    className="h-12 md:h-20 bg-[#d9d9d9] placeholder-black/65 p-4" />
+                <button
+                    type="submit"
+                    className="bg-[#D3F0D3]/80 w-fit self-center md:px-20 text-lg md:text-3xl p-3 rounded-xl">
                         Create Account
                 </button>
-            </div>
+            </form>
         </div>
     )
 }
