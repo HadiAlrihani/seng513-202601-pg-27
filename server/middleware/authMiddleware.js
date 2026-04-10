@@ -3,8 +3,8 @@
 import jwt from "jsonwebtoken";
 import { pool } from "../authentication/dbConfig.js";
 
-// Verifies the JWT and attaches req.userId for use in route handlers.
-export const requireAuth = (req, res, next) => {
+// Verifies the JWT and confirms the user still exists in the database.
+export const requireAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -15,6 +15,12 @@ export const requireAuth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
+
+    const result = await pool.query("SELECT id FROM users WHERE id = $1", [decoded.id]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: "Account no longer exists" });
+    }
+
     req.userId = decoded.id;
     next();
   } catch (err) {

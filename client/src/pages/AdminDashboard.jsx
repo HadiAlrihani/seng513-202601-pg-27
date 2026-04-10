@@ -27,6 +27,11 @@ export default function AdminDashboard() {
             const response = await fetch("http://localhost:5000/admin/users", {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (response.status === 401) {
+                localStorage.clear();
+                navigate("/");
+                return;
+            }
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "Failed to fetch users");
             setUsers(data);
