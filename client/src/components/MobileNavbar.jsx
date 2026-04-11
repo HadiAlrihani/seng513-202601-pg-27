@@ -9,7 +9,7 @@ export default function MobileNavbar() {
     const navigate = useNavigate();
 
     return (
-        <div className="w-full h-[10vh] bg-white flex border-t-2 border-black fixed bottom-0 left-0 md-computer:hidden">
+        <div className="bg-zinc-50 w-full h-[10vh] bg-white flex border-t-2 border-black fixed bottom-0 left-0 md-computer:hidden">
             <div className="flex-1 flex justify-center items-center">
                 <button onClick={() => navigate('/home')} 
                 className="flex h-full w-full justify-center items-end">

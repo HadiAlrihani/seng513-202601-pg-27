@@ -14,7 +14,7 @@ export default function Navbar() {
     const navigate = useNavigate();
 
     return (
-        <div className="w-full h-[15vh] p-4 border-b-4 drop-shadow-2xl/50 hidden md-computer:flex items-center justify-between" >
+        <div className="bg-zinc-50 w-full h-[15vh] p-4 border-b-4 drop-shadow-2xl/50 hidden md-computer:flex items-center justify-between" >
             <button onClick={() => navigate('/home')}
             className="w-[15vh] h-[15vh] box-border">
                 <img 

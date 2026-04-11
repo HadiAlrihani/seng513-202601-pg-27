@@ -247,13 +247,13 @@ export const postCheckpointMessage = async (req, res) => {
       [userId]
     );
 
-    //sets the last updated club/discussion of the user
-    // const setDiscussionProgress = await pool.query(
-    //   `UPDATE users
-    //    SET last_updated_club = $1, last_updated_checkpoint = $2
-    //    WHERE id = $3`,
-    //    [clubId, checkpointNum, userId]
-    // );
+    // sets the last updated club/discussion of the user
+    const setDiscussionProgress = await pool.query(
+      `UPDATE users
+       SET last_updated_club = $1, last_updated_checkpoint = $2
+       WHERE id = $3`,
+       [clubId, checkpointNum, userId]
+    );
 
     return res.status(201).json({
       message: "Message posted successfully",

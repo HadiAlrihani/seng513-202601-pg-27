@@ -45,7 +45,7 @@ export default function Homepage() {
     return  (
         <>
         <Navbar />
-        <div className="h-[90vh] md-computer:h-[85vh] flex flex-col md-computer:flex-row">
+        <div className="bg-zinc-50 h-[90vh] md-computer:h-[85vh] flex flex-col md-computer:flex-row">
             <div className="py-6 md-computer:hidden">
                 <h1 className="font-italiana text-3xl md:text-5xl text-center">
                     Wormly Connected

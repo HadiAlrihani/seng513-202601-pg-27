@@ -26,6 +26,7 @@ export default function HomeSidebar() {
         else {
             const club_id = data.club_id;
             const checkpoint_num = data.checkpoint_num;
+            console.log(checkpoint_num);
             navigate(`/clubs/${club_id}/discussion`, { state: { checkpoint_num: checkpoint_num }});
         }
     };
