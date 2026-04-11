@@ -6,6 +6,8 @@ import Navbar from "../components/Navbar.jsx";
 import MobileNavbar from "../components/MobileNavbar.jsx";
 import HomeSidebar from "../components/HomeSidebar.jsx";
 
+import LogoutButton from "../components/LogoutButton.jsx";
+
 import SettingsMenu from "../components/SettingsMenu.jsx";
 import Modal from "../components/Modal.jsx";
 import UsernameForm from "../components/UsernameForm.jsx";
@@ -20,6 +22,8 @@ import closed_book from "../assets/closed_book.png";
 import profile_icon from "../assets/profile_icon.png";
 
 export default function Profile() {
+    const [isOpenLogoutModal, setIsOpenLogoutModal] = useState(false);
+
     const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
     
     const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false);
@@ -112,7 +116,7 @@ export default function Profile() {
                     <h1 className="text-center text-xl md:text-3xl text-stone-500">{email}</h1>
                 </div>
                 <div className="flex items-start md-computer:hidden">
-                    <button className="w-[3vh] h-[3vh]">
+                    <button onClick={() => setIsOpenLogoutModal(true)} className="w-[3vh] h-[3vh]">
                         <img src={logout} />
                     </button>
                 </div>
@@ -137,7 +141,7 @@ export default function Profile() {
             
             <div className="flex flex-1 items-center md-computer:hidden">
                 <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
-                    <button 
+                    <button onClick={() => navigate('/bookshelf')}
                     className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
                     md-computer:h-[10vw] md-computer:w-[10vw]">
                         <img src={closed_book} 
@@ -146,7 +150,7 @@ export default function Profile() {
                     <h1 className="pt-2 font-inter text-center md:text-2xl md-computer:text-lg">Your Library</h1>
                 </div>
                 <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
-                    <button 
+                    <button onClick={() => navigate('/my-clubs')}
                     className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
                     md-computer:h-[10vw] md-computer:w-[10vw]">
                         <img src={club} 
@@ -158,6 +162,17 @@ export default function Profile() {
 
         </div>
         <MobileNavbar />
+
+        {isOpenLogoutModal && (
+        <LogoutButton
+            onCancel={() => setIsOpenLogoutModal(false)}
+            onConfirm={() => {
+            localStorage.clear();
+            setIsOpenLogoutModal(false);
+            navigate("/");
+            }}
+        />
+        )}
 
         {/* Settings Menu Modal */}
         <SettingsMenu
