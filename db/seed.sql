@@ -45,16 +45,32 @@ club_description, visibility) VALUES
 (2, 'The Hunger Games', 'Elite Hunger Club', 'HG999', 3, 10, 'Invite-only Hunger Games discussion.', 'private'),
 (3, 'A Game of Thrones (HBO Tie-in Edition)', 'Westeros Politics Club', NULL, 6, 20, 'Discuss power, betrayal, and strategy.', 'public');
 
-INSERT INTO users (username, email, user_password, last_updated_id, last_updated_club) VALUES
+
+INSERT INTO checkpoints (club_id, checkpoint_num, checkpoint_name) VALUES
+(1, 1, 'Chapter 1 discussion'),
+(1, 2, 'Chapter 2 discussion'),
+(1, 3, 'Chapter 3 discussion'),
+(2, 1, 'Part 1 discussion'),
+(2, 2, 'Part 2 discussion'),
+(2, 3, 'Final discussion'),
+(3, 1, 'Tribute selection discussion'),
+(3, 2, 'Arena strategy discussion'),
+(3, 3, 'Final survival discussion'),
+(4, 1, 'Opening chapters discussion'),
+(4, 2, 'Mid-book discussion'),
+(4, 3, 'Ending discussion');
+
+
+INSERT INTO users (username, email, user_password, last_viewed_club, last_updated_club, last_updated_checkpoint) VALUES
 
 /*The password for admin is admin123*/
-('admin', 'admin.email@gmail.com', '$2b$10$MMxloxulFa3HmlnS1NaTyey0unknfEjQd1uFXTlAHiITCtKmDALym', NULL, NULL),
+('admin', 'admin.email@gmail.com', '$2b$10$MMxloxulFa3HmlnS1NaTyey0unknfEjQd1uFXTlAHiITCtKmDALym', NULL, NULL, NULL),
 
 /*The password for moderator is mod123*/
-('club_moderator', 'mod@gmail.com', '$2b$10$mLcdM6lmDlxTvSmrpS4/tOZAhuyLiazMy5j7sNFR6.PTPfud3DocK', 2, 1),
+('club_moderator', 'mod@gmail.com', '$2b$10$mLcdM6lmDlxTvSmrpS4/tOZAhuyLiazMy5j7sNFR6.PTPfud3DocK', 2, 4, 2),
 
 /*The password for enjoyer is books123*/
-('book_enjoyer', 'reader@gmail.com', '$2b$10$qkblFxORoJrK0jup2P42VOCIpEuxoLGSWqUKJWHEz.mRTzY0BEsmu', 2, 1);
+('book_enjoyer', 'reader@gmail.com', '$2b$10$qkblFxORoJrK0jup2P42VOCIpEuxoLGSWqUKJWHEz.mRTzY0BEsmu', 2, 4, 1);
 
 INSERT INTO user_friends (friend1_id, friend2_id) VALUES
 (2, 3);
@@ -80,19 +96,6 @@ INSERT INTO user_authors (user_id, author_id) VALUES
 (2, 2),
 (3, 2);
 
-INSERT INTO checkpoints (club_id, checkpoint_num, checkpoint_name) VALUES
-(1, 1, 'Chapter 1 discussion'),
-(1, 2, 'Chapter 2 discussion'),
-(1, 3, 'Chapter 3 discussion'),
-(2, 1, 'Part 1 discussion'),
-(2, 2, 'Part 2 discussion'),
-(2, 3, 'Final discussion'),
-(3, 1, 'Tribute selection discussion'),
-(3, 2, 'Arena strategy discussion'),
-(3, 3, 'Final survival discussion'),
-(4, 1, 'Opening chapters discussion'),
-(4, 2, 'Mid-book discussion'),
-(4, 3, 'Ending discussion');
 
 INSERT INTO bookclub_members (user_id, club_id, user_role, progress_checkpoint) VALUES
 (2, 1, 'moderator', 3),

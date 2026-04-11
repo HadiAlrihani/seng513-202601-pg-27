@@ -247,6 +247,14 @@ export const postCheckpointMessage = async (req, res) => {
       [userId]
     );
 
+    //sets the last updated club/discussion of the user
+    // const setDiscussionProgress = await pool.query(
+    //   `UPDATE users
+    //    SET last_updated_club = $1, last_updated_checkpoint = $2
+    //    WHERE id = $3`,
+    //    [clubId, checkpointNum, userId]
+    // );
+
     return res.status(201).json({
       message: "Message posted successfully",
       postedMessage: {
@@ -257,5 +265,45 @@ export const postCheckpointMessage = async (req, res) => {
   } catch (error) {
     console.error("Error posting checkpoint message:", error);
     return res.status(500).json({ error: "Failed to post message" });
+  }
+};
+
+export const getRecentDiscussion = async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "user does not exist" });
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT last_updated_club, last_updated_checkpoint FROM users WHERE id = $1",
+      [userId]
+    );
+
+    console.log("Query result:", result.rows);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const { last_updated_club, last_updated_checkpoint } = result.rows[0];
+
+    console.log({ last_updated_club, last_updated_checkpoint });
+
+    if (last_updated_club == null || last_updated_checkpoint == null) {
+      return res.status(400).json({
+        error: "Missing checkpoint or club or both"
+      });
+    }
+
+    return res.status(200).json({
+      club_id: last_updated_club,
+      checkpoint_num: last_updated_checkpoint
+    });
+
+  } catch (err) {
+    console.error("FULL ERROR:", err);
+    return res.status(500).json({ error: "server error" });
   }
 };
