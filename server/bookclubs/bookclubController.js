@@ -192,3 +192,48 @@ export const leaveClub = async (req, res) => {
     return res.status(500).json({ error: "Failed to leave club" });
   }
 };
+
+export const setRecentClub = async (req, res) => {
+  const { userId, clubId } = req.body;
+
+  try {
+    if (!userId || !clubId) {
+      return res.status(400).json({ error: "userId and clubId are required" });
+    }
+
+    await pool.query("UPDATE users SET last_updated_club = $1 WHERE id = $2", [clubId, userId]);
+
+    res.status(200).json({ 
+      message: "successfully insterted club",
+      club_id: clubId
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to insert club"})
+  }
+};
+
+export const getRecentClub = async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    // get id of last visited club by user
+    const recent_club = await pool.query(
+      "SELECT last_updated_club from users where id = $1",
+      [userId]
+    );
+
+    if (recent_club === null) {
+      return res.status(400).json({ error: "No clubs found"})
+    }
+
+    res.status(200).json({ club_id: recent_club.rows[0]?.last_updated_club})
+
+  } catch (err) {
+    res.status(500).json({ error: "server error" })
+  }
+
+};

@@ -81,6 +81,31 @@ function YourClubs() {
         }
     };
 
+    const handleClubSelect = async (clubId) => {
+        if (!userId) {
+            navigate("/");
+            return;
+        }
+
+        //set the recent club in the users table
+        const response = await fetch("http://localhost:5000/bookclubs/set-recent-club", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", },
+            body: JSON.stringify({
+                userId,
+                clubId
+            })
+        });
+
+        await response.json();
+
+        if (!response.ok) {
+            console.log({ error: response } );
+        }
+
+        navigate(`/clubs/${clubId}/discussion`);
+    };
+
     return (
         <div className="min-h-screen bg-zinc-50">
             <Navbar />
@@ -162,7 +187,7 @@ function YourClubs() {
 
                                     <div className="flex flex-row md:flex-col gap-3 md:min-w-[170px]">
                                         <button
-                                            onClick={() => navigate(`/clubs/${club.id}/discussion`)}
+                                            onClick={() => handleClubSelect(club.id)}
                                             className="flex-1 md:flex-none px-4 py-2 rounded-2xl bg-white border border-[#c8d5c3] hover:bg-[#f7faf6] transition"
                                         >
                                             Discussion
