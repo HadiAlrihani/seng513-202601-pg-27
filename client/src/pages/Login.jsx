@@ -48,7 +48,7 @@ export default function Login() {
     };
 
     return (
-        <div className="bg-zinc-50 h-full flex flex-col justify-around items-center py-[20vh] md:py-[20vh] md-computer:py-[5vh] px-[10vh]">
+        <div className="min-h-screen bg-zinc-50 flex flex-col justify-around items-center py-[20vh] md:py-[20vh] md-computer:py-[5vh] px-[10vh]">
             <div className="flex max-h-[25vh] md-computer:max-w-[60vw] items-center justify-center">
                 <img className="hidden md-computer:block max-h-[25vh]" src={logo} />
                 <h1 className="flex-1 font-italiana text-6xl md:text-7xl text-center">

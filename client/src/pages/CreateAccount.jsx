@@ -49,7 +49,7 @@ export default function CreateAccount() {
     };
 
     return (
-        <div className="bg-zinc-50 h-full flex flex-col justify-evenly items-center py-[5vh] px-[10vh] md-short:py-[7vh]">
+        <div className="bg-zinc-50 min-h-screen flex flex-col justify-evenly items-center py-[5vh] px-[10vh] md-short:py-[7vh]">
             <div className="flex md-computer:w-[60vw] max-h-[25vh] items-center justify-center">
                 <img className="hidden md-computer:block max-h-[25vh]" src={logo} />
                 <h1 className="flex font-italiana text-6xl md:text-7xl md-short:text-5xl text-center">
