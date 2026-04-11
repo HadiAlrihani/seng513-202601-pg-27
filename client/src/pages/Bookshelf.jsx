@@ -58,6 +58,11 @@ export default function Bookshelf() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
+        if (res.status === 401) {
+          localStorage.clear();
+          navigate("/");
+          return;
+        }
         if (!res.ok) throw new Error("Auth failed");
         const shelfData = await res.json();
         setShelf(shelfData);
@@ -157,10 +162,7 @@ export default function Bookshelf() {
     try {
       const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ read_status: newStatus }),
       });
 
@@ -193,10 +195,7 @@ export default function Bookshelf() {
     try {
       const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ review: reviewText }),
       });
 
@@ -230,10 +229,7 @@ export default function Bookshelf() {
     try {
       const res = await fetch(`http://localhost:5000/bookshelf/${bookId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ rating: newRating }),
       });
 

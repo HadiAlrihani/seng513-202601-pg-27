@@ -29,11 +29,13 @@ export default function Login() {
                 localStorage.setItem("wormly_username", data.user.username);
                 localStorage.setItem("wormly_email", data.user.email);
                 localStorage.setItem("wormly_token", data.token);
+                localStorage.setItem("wormly_isAdmin", data.user.is_admin);
 
                 localStorage.setItem("userId", String(data.user.id));
                 localStorage.setItem("username", data.user.username);
                 localStorage.setItem("email", data.user.email);
                 localStorage.setItem("token", data.token);
+
 
                 navigate("/home");
             } else {
