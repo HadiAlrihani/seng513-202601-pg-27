@@ -10,6 +10,7 @@ import YourClubs from "./pages/YourClubs";
 import ClubDiscussion from "./pages/ClubDiscussion";
 import Bookshelf from "./pages/Bookshelf";
 import Friends from "./pages/Friends";
+import FriendBookshelf from "./pages/FriendBookshelf";
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/clubs/:clubId/discussion" element={<ClubDiscussion />} />
             <Route path="/bookshelf" element={<Bookshelf />} />
             <Route path="/friends" element={<Friends />} />
+            <Route path="/friends/:friendId/bookshelf" element={<FriendBookshelf />} />
         </Routes>
     );
 }

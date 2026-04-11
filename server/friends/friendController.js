@@ -207,3 +207,70 @@ export const getFriends = async (req, res) => {
         res.status(500).json({ error: "Failed to fetch friends" });
     }
 };
+
+export const getFriendBookshelf = async (req, res) => {
+    const { userId, friendId } = req.params;
+
+    try {
+        const friendship = await pool.query(
+            `
+            SELECT 1
+            FROM friend_requests
+            WHERE status = 'accepted'
+              AND (
+                (sender_id = $1 AND receiver_id = $2)
+                OR
+                (sender_id = $2 AND receiver_id = $1)
+              )
+            LIMIT 1
+            `,
+            [Number(userId), Number(friendId)]
+        );
+
+        if (friendship.rows.length === 0) {
+            return res.status(403).json({ error: "You can only view accepted friends' shelves." });
+        }
+
+        const friendResult = await pool.query(
+            `SELECT id, username FROM users WHERE id = $1`,
+            [Number(friendId)]
+        );
+
+        if (friendResult.rows.length === 0) {
+            return res.status(404).json({ error: "Friend not found." });
+        }
+
+        const booksResult = await pool.query(
+            `
+            SELECT ub.book_id, ub.read_status, ub.date_started, ub.date_finished,
+                   ub.rating, ub.review, ub.reviewed_at, ub.is_favorite,
+                   b.title, b.author, b.cover_image, b.book_length
+            FROM user_books ub
+            JOIN books b ON ub.book_id = b.id
+            WHERE ub.user_id = $1
+            ORDER BY b.title ASC
+            `,
+            [Number(friendId)]
+        );
+
+        const grouped = {
+            to_read: [],
+            reading: [],
+            finished: [],
+        };
+
+        for (const book of booksResult.rows) {
+            if (grouped[book.read_status]) {
+                grouped[book.read_status].push(book);
+            }
+        }
+
+        return res.json({
+            friend: friendResult.rows[0],
+            shelf: grouped,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch friend's bookshelf" });
+    }
+};
