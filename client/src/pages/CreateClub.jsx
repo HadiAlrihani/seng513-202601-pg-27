@@ -26,7 +26,7 @@ function CreateClub() {
             const response = await fetch("http://localhost:5000/bookclubs/club", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ club_name: clubName, book_title: bookTitle, club_description: clubDescription, num_members: 1, max_members: Number(maxMembers), visibility: "public"}),
+                body: JSON.stringify({ club_name: clubName, book_title: bookTitle, club_description: clubDescription, num_members: 1, max_members: Number(maxMembers), visibility: "public", userId: userId}),
             });
 
             if (!response.ok) {
