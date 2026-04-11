@@ -1,6 +1,5 @@
 import { pool } from "../authentication/dbConfig.js";
 
-// CREATE TABLE (safe init)
 export const initializeFriendRequestsTable = async () => {
     try {
         await pool.query(`
@@ -13,15 +12,19 @@ export const initializeFriendRequestsTable = async () => {
                 CONSTRAINT no_self_request CHECK (sender_id <> receiver_id)
             );
         `);
+
         console.log("friend_requests table ready");
     } catch (err) {
         console.error("Error creating friend_requests table:", err);
     }
 };
 
-// SEARCH USERS
 export const searchUsers = async (req, res) => {
-    const { query, userId } = req.query;
+    const { query = "", userId } = req.query;
+
+    if (!userId) {
+        return res.status(400).json({ error: "userId is required" });
+    }
 
     try {
         const result = await pool.query(
@@ -29,10 +32,10 @@ export const searchUsers = async (req, res) => {
             SELECT id, username
             FROM users
             WHERE LOWER(username) LIKE LOWER($1)
-            AND id <> $2
+              AND id <> $2
             ORDER BY username
             `,
-            [`%${query}%`, userId]
+            [`%${query}%`, Number(userId)]
         );
 
         res.json(result.rows);
@@ -42,22 +45,26 @@ export const searchUsers = async (req, res) => {
     }
 };
 
-// SEND REQUEST
 export const sendRequest = async (req, res) => {
     const { senderId, receiverId } = req.body;
 
-    if (senderId === receiverId) {
+    if (!senderId || !receiverId) {
+        return res.status(400).json({ error: "senderId and receiverId are required" });
+    }
+
+    if (Number(senderId) === Number(receiverId)) {
         return res.status(400).json({ error: "Cannot add yourself" });
     }
 
     try {
         const existing = await pool.query(
             `
-            SELECT * FROM friend_requests
+            SELECT *
+            FROM friend_requests
             WHERE (sender_id = $1 AND receiver_id = $2)
                OR (sender_id = $2 AND receiver_id = $1)
             `,
-            [senderId, receiverId]
+            [Number(senderId), Number(receiverId)]
         );
 
         if (existing.rows.length > 0) {
@@ -69,7 +76,7 @@ export const sendRequest = async (req, res) => {
             INSERT INTO friend_requests (sender_id, receiver_id)
             VALUES ($1, $2)
             `,
-            [senderId, receiverId]
+            [Number(senderId), Number(receiverId)]
         );
 
         res.json({ message: "Request sent" });
@@ -79,20 +86,20 @@ export const sendRequest = async (req, res) => {
     }
 };
 
-// INCOMING REQUESTS
 export const getRequests = async (req, res) => {
     const { userId } = req.params;
 
     try {
         const result = await pool.query(
             `
-            SELECT fr.id, u.username
+            SELECT fr.id, fr.sender_id, u.username
             FROM friend_requests fr
             JOIN users u ON fr.sender_id = u.id
             WHERE fr.receiver_id = $1
-            AND fr.status = 'pending'
+              AND fr.status = 'pending'
+            ORDER BY fr.created_at DESC
             `,
-            [userId]
+            [Number(userId)]
         );
 
         res.json(result.rows);
@@ -102,14 +109,17 @@ export const getRequests = async (req, res) => {
     }
 };
 
-// ACCEPT
 export const acceptRequest = async (req, res) => {
     const { requestId } = req.params;
 
     try {
         await pool.query(
-            `UPDATE friend_requests SET status='accepted' WHERE id=$1`,
-            [requestId]
+            `
+            UPDATE friend_requests
+            SET status = 'accepted'
+            WHERE id = $1
+            `,
+            [Number(requestId)]
         );
 
         res.json({ message: "Accepted" });
@@ -119,14 +129,17 @@ export const acceptRequest = async (req, res) => {
     }
 };
 
-// DECLINE
 export const declineRequest = async (req, res) => {
     const { requestId } = req.params;
 
     try {
         await pool.query(
-            `UPDATE friend_requests SET status='declined' WHERE id=$1`,
-            [requestId]
+            `
+            UPDATE friend_requests
+            SET status = 'declined'
+            WHERE id = $1
+            `,
+            [Number(requestId)]
         );
 
         res.json({ message: "Declined" });
@@ -136,7 +149,6 @@ export const declineRequest = async (req, res) => {
     }
 };
 
-// FRIEND LIST
 export const getFriends = async (req, res) => {
     const { userId } = req.params;
 
@@ -146,14 +158,15 @@ export const getFriends = async (req, res) => {
             SELECT u.id, u.username
             FROM friend_requests fr
             JOIN users u
-            ON (
+              ON (
                 (fr.sender_id = $1 AND u.id = fr.receiver_id)
                 OR
                 (fr.receiver_id = $1 AND u.id = fr.sender_id)
-            )
+              )
             WHERE fr.status = 'accepted'
+            ORDER BY u.username
             `,
-            [userId]
+            [Number(userId)]
         );
 
         res.json(result.rows);
