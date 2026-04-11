@@ -29,11 +29,25 @@ export const searchUsers = async (req, res) => {
     try {
         const result = await pool.query(
             `
-            SELECT id, username
-            FROM users
-            WHERE LOWER(username) LIKE LOWER($1)
-              AND id <> $2
-            ORDER BY username
+            SELECT 
+                u.id,
+                u.username,
+                CASE
+                    WHEN fr.status = 'accepted' THEN 'friends'
+                    WHEN fr.status = 'pending' AND fr.sender_id = $2 THEN 'pending_sent'
+                    WHEN fr.status = 'pending' AND fr.receiver_id = $2 THEN 'pending_received'
+                    ELSE 'none'
+                END AS relationship
+            FROM users u
+            LEFT JOIN friend_requests fr
+                ON (
+                    (fr.sender_id = $2 AND fr.receiver_id = u.id)
+                    OR
+                    (fr.receiver_id = $2 AND fr.sender_id = u.id)
+                )
+            WHERE LOWER(u.username) LIKE LOWER($1)
+              AND u.id <> $2
+            ORDER BY u.username
             `,
             [`%${query}%`, Number(userId)]
         );
@@ -68,7 +82,25 @@ export const sendRequest = async (req, res) => {
         );
 
         if (existing.rows.length > 0) {
-            return res.status(400).json({ error: "Request already exists" });
+            const existingRequest = existing.rows[0];
+
+            if (existingRequest.status === "accepted") {
+                return res.status(400).json({ error: "You are already friends" });
+            }
+
+            if (existingRequest.status === "pending") {
+                return res.status(400).json({ error: "Request already exists" });
+            }
+
+            if (existingRequest.status === "declined") {
+                await pool.query(
+                    `
+                    DELETE FROM friend_requests
+                    WHERE id = $1
+                    `,
+                    [existingRequest.id]
+                );
+            }
         }
 
         await pool.query(
