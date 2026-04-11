@@ -95,6 +95,8 @@ INSERT INTO user_authors (user_id, author_id) VALUES
 (2, 2),
 (3, 2);
 
+UPDATE users SET is_admin = TRUE WHERE username = 'admin';
+
 
 INSERT INTO bookclub_members (user_id, club_id, user_role, progress_checkpoint) VALUES
 (2, 1, 'moderator', 3),

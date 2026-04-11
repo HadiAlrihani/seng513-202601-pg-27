@@ -172,7 +172,8 @@ ON bookclub_members (user_id, club_id);
 ALTER TABLE users
 ADD CONSTRAINT fk_last_viewed_club
 FOREIGN KEY (last_viewed_club)
-REFERENCES bookclubs(id);
+REFERENCES bookclubs(id)
+ON DELETE SET NULL;
 
 -- users → checkpoints (composite FK)
 ALTER TABLE users
