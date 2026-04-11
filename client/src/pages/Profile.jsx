@@ -95,7 +95,7 @@ export default function Profile() {
     return  (
         <>
         <Navbar />
-        <div className="flex flex-col h-[90vh] md-computer:h-[85vh] md-computer:flex-row">
+        <div className="bg-zinc-50 flex flex-col h-[90vh] md-computer:h-[85vh] md-computer:flex-row">
             <div className="hidden md-computer:block">
                 <HomeSidebar />
             </div>

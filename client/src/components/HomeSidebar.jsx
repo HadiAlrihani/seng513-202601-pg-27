@@ -11,24 +11,23 @@ export default function HomeSidebar() {
         localStorage.getItem("userId") || localStorage.getItem("wormly_id");
     const userId = storedUserId ? Number(storedUserId) : null;
 
-    const handleRecentClub = async () => {
-
-        const response = await fetch(`http://localhost:5000/bookclubs/get-recent-club?userId=${userId}`, {
+    const handleRecentDiscussion = async () => {
+        
+        const response = await fetch(`http://localhost:5000/discussions/recent-discussion?userId=${userId}`,{
             method: "GET",
-            headers: { "Content-Type": "application/json", },
+            headers: { "Content-Type": "application/json"}
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            console.log({ error: response})
+            console.log({ error: response});
         }
         else {
-            const clubId = data.club_id;
-            if (!clubId) {
-                return;
-            }
-            navigate(`/clubs/${clubId}/discussion`);
+            const club_id = data.club_id;
+            const checkpoint_num = data.checkpoint_num;
+            console.log(checkpoint_num);
+            navigate(`/clubs/${club_id}/discussion`, { state: { checkpoint_num: checkpoint_num }});
         }
     };
     
@@ -55,7 +54,7 @@ export default function HomeSidebar() {
                 <h1 className="pt-2 font-inter text-center md:text-2xl md-computer:text-lg">Find a Club</h1>
             </div>
             <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
-                <button onClick={handleRecentClub}
+                <button onClick={handleRecentDiscussion}
                 className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3]
                 md-computer:h-[10vw] md-computer:w-[10vw]">
                     <img src={discussion} 

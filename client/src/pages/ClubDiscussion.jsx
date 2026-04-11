@@ -1,9 +1,10 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 
 function ClubDiscussion() {
+    const location = useLocation();
     const navigate = useNavigate();
     const { clubId } = useParams();
 
@@ -17,7 +18,7 @@ function ClubDiscussion() {
 
     const [club, setClub] = useState(null);
     const [checkpoints, setCheckpoints] = useState([]);
-    const [selectedCheckpoint, setSelectedCheckpoint] = useState(null);
+    const [selectedCheckpoint, setSelectedCheckpoint] = useState(location.state?.checkpoint_num || null);
     const [messages, setMessages] = useState([]);
     const [progressValue, setProgressValue] = useState("");
     const [messageText, setMessageText] = useState("");
@@ -84,10 +85,24 @@ function ClubDiscussion() {
                     : ""
             );
 
+            const passedCheckpoint = location.state?.checkpoint_num;
+
+            if (passedCheckpoint) {
+                const exists = data.checkpoints.find(
+                    (c) => Number(c.checkpoint_num) === Number(passedCheckpoint)
+                );
+
+                if (exists) {
+                    setSelectedCheckpoint(passedCheckpoint);
+                    return data;
+                }
+            }
+
             const firstUnlocked = data.checkpoints.find(
                 (checkpoint) => checkpoint.is_unlocked
             );
 
+            
             if (firstUnlocked) {
                 setSelectedCheckpoint((prevSelected) =>
                     prevSelected !== null ? prevSelected : firstUnlocked.checkpoint_num
