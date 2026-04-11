@@ -1,9 +1,10 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 
 function ClubDiscussion() {
+    const location = useLocation();
     const navigate = useNavigate();
     const { clubId } = useParams();
 
@@ -17,7 +18,7 @@ function ClubDiscussion() {
 
     const [club, setClub] = useState(null);
     const [checkpoints, setCheckpoints] = useState([]);
-    const [selectedCheckpoint, setSelectedCheckpoint] = useState(null);
+    const [selectedCheckpoint, setSelectedCheckpoint] = useState(location.state?.checkpoint_num || null);
     const [messages, setMessages] = useState([]);
     const [progressValue, setProgressValue] = useState("");
     const [messageText, setMessageText] = useState("");
@@ -29,6 +30,8 @@ function ClubDiscussion() {
 
     const [pageError, setPageError] = useState("");
     const [messageError, setMessageError] = useState("");
+    const [notification, setNotification] = useState("");
+    const [showNotificationPopup, setShowNotificationPopup] = useState(false);
 
     const selectedCheckpointData = useMemo(() => {
         return (
@@ -39,10 +42,25 @@ function ClubDiscussion() {
         );
     }, [checkpoints, selectedCheckpoint]);
 
+    const showNotification = (text) => {
+        setNotification(text);
+        setShowNotificationPopup(true);
+
+        window.clearTimeout(window.wormlyNotificationTimeout);
+        window.wormlyNotificationTimeout = window.setTimeout(() => {
+            setShowNotificationPopup(false);
+        }, 3000);
+    };
+
+    const closeNotification = () => {
+        setShowNotificationPopup(false);
+        window.clearTimeout(window.wormlyNotificationTimeout);
+    };
+
     const loadClubData = async () => {
         if (!userId) {
             navigate("/");
-            return;
+            return null;
         }
 
         try {
@@ -67,20 +85,41 @@ function ClubDiscussion() {
                     : ""
             );
 
+            const passedCheckpoint = location.state?.checkpoint_num;
+
+            if (passedCheckpoint) {
+                const exists = data.checkpoints.find(
+                    (c) => Number(c.checkpoint_num) === Number(passedCheckpoint)
+                );
+
+                if (exists) {
+                    setSelectedCheckpoint(passedCheckpoint);
+                    return data;
+                }
+            }
+
             const firstUnlocked = data.checkpoints.find(
                 (checkpoint) => checkpoint.is_unlocked
             );
 
+            
             if (firstUnlocked) {
-                setSelectedCheckpoint(firstUnlocked.checkpoint_num);
+                setSelectedCheckpoint((prevSelected) =>
+                    prevSelected !== null ? prevSelected : firstUnlocked.checkpoint_num
+                );
             } else if (data.checkpoints.length > 0) {
-                setSelectedCheckpoint(data.checkpoints[0].checkpoint_num);
+                setSelectedCheckpoint((prevSelected) =>
+                    prevSelected !== null ? prevSelected : data.checkpoints[0].checkpoint_num
+                );
             } else {
                 setSelectedCheckpoint(null);
             }
+
+            return data;
         } catch (error) {
             console.error("Error loading discussion page:", error);
             setPageError(error.message || "Unable to load discussion page.");
+            return null;
         } finally {
             setIsLoadingPage(false);
         }
@@ -128,6 +167,10 @@ function ClubDiscussion() {
     const handleProgressUpdate = async () => {
         if (!progressValue || !userId) return;
 
+        const previouslyUnlocked = checkpoints
+            .filter((checkpoint) => checkpoint.is_unlocked)
+            .map((checkpoint) => Number(checkpoint.checkpoint_num));
+
         try {
             setIsUpdatingProgress(true);
 
@@ -150,8 +193,30 @@ function ClubDiscussion() {
                 return;
             }
 
-            await loadClubData();
-            setSelectedCheckpoint(Number(progressValue));
+            const refreshedData = await loadClubData();
+            const newSelectedCheckpoint = Number(progressValue);
+            setSelectedCheckpoint(newSelectedCheckpoint);
+
+            if (refreshedData?.checkpoints) {
+                const newlyUnlocked = refreshedData.checkpoints
+                    .filter(
+                        (checkpoint) =>
+                            checkpoint.is_unlocked &&
+                            !previouslyUnlocked.includes(Number(checkpoint.checkpoint_num))
+                    )
+                    .map((checkpoint) => Number(checkpoint.checkpoint_num));
+
+                if (newlyUnlocked.length > 0) {
+                    const highestUnlocked = Math.max(...newlyUnlocked);
+                    showNotification(
+                        `Checkpoint ${highestUnlocked} unlocked! New discussion available.`
+                    );
+                } else {
+                    showNotification("Progress updated successfully.");
+                }
+            } else {
+                showNotification("Progress updated successfully.");
+            }
         } catch (error) {
             console.error("Error updating progress:", error);
             alert("Something went wrong while updating progress.");
@@ -203,6 +268,31 @@ function ClubDiscussion() {
     return (
         <div className="min-h-screen bg-zinc-50">
             <Navbar />
+
+            {showNotificationPopup ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4">
+                    <div className="w-full max-w-md rounded-[28px] border border-[#b8d7ac] bg-[#eef7e9] p-6 shadow-2xl text-center">
+                        <p className="text-sm uppercase tracking-wide text-[#4e6b44]">
+                            Notification
+                        </p>
+
+                        <h2 className="mt-2 font-playfair text-2xl text-[#27401f]">
+                            Checkpoint Update
+                        </h2>
+
+                        <p className="mt-3 text-[#315126] text-base leading-7">
+                            {notification}
+                        </p>
+
+                        <button
+                            onClick={closeNotification}
+                            className="mt-5 px-5 py-2 rounded-2xl bg-[#a8c49f] hover:bg-[#99b890] transition"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            ) : null}
 
             <div className="max-w-6xl mx-auto px-4 py-6 pb-28 md-computer:pb-8">
                 <Link to="/my-clubs" className="text-sm underline text-gray-600">

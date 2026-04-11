@@ -17,10 +17,35 @@ export default function Homepage() {
     }
   }, [username, navigate]);
 
+    const storedUserId =
+        localStorage.getItem("userId") || localStorage.getItem("wormly_id");
+    const userId = storedUserId ? Number(storedUserId) : null;
+
+    const handleRecentClub = async () => {
+
+        const response = await fetch(`http://localhost:5000/bookclubs/get-recent-club?userId=${userId}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json", },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log({ error: response})
+        }
+        else {
+            const clubId = data.club_id;
+            if (!clubId) {
+                return;
+            }
+            navigate(`/clubs/${clubId}/discussion`);
+        }
+    };
+
     return  (
         <>
         <Navbar />
-        <div className="h-[90vh] md-computer:h-[85vh] flex flex-col md-computer:flex-row">
+        <div className="bg-zinc-50 h-[90vh] md-computer:h-[85vh] flex flex-col md-computer:flex-row">
             <div className="py-6 md-computer:hidden">
                 <h1 className="font-italiana text-3xl md:text-5xl text-center">
                     Wormly Connected
@@ -33,7 +58,7 @@ export default function Homepage() {
                 </h1>
                 <div className="flex justify-evenly">
                     <div className="flex flex-1 flex-col items-center">
-                        <button onClick={() => navigate('/friends-shelf')} 
+                        <button onClick={handleRecentClub} 
                         className="flex items-center justify-center w-[44vw] h-[44vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
                         md-computer:h-[20vw] md-computer:w-[20vw]">
                             <img src={book_with_worm} 

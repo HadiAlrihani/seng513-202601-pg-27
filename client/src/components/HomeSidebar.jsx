@@ -6,13 +6,38 @@ import discussion from "../assets/discussion.png";
 
 export default function HomeSidebar() {
     const navigate = useNavigate();
+
+    const storedUserId =
+        localStorage.getItem("userId") || localStorage.getItem("wormly_id");
+    const userId = storedUserId ? Number(storedUserId) : null;
+
+    const handleRecentDiscussion = async () => {
+        
+        const response = await fetch(`http://localhost:5000/discussions/recent-discussion?userId=${userId}`,{
+            method: "GET",
+            headers: { "Content-Type": "application/json"}
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.log({ error: response});
+        }
+        else {
+            const club_id = data.club_id;
+            const checkpoint_num = data.checkpoint_num;
+            console.log(checkpoint_num);
+            navigate(`/clubs/${club_id}/discussion`, { state: { checkpoint_num: checkpoint_num }});
+        }
+    };
     
     return (
         <div className="flex justify-between items-start
              md-computer:flex-col md-computer:h-[85vh] md-computer:items-center md-computer:w-[15vw] md-computer:bg-[#D3F0D3]/35">
             <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
                 <button 
-                className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3] flex justify-center items-center
+                onClick={() => navigate('/friends')}
+                className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3]
                 md-computer:h-[10vw] md-computer:w-[10vw]">
                     <img src={bookshelf} 
                     className="h-[16vw] w-[16vw] md-computer:h-[6vw] md-computer:w-[6vw] object-contain" />
@@ -29,7 +54,7 @@ export default function HomeSidebar() {
                 <h1 className="pt-2 font-inter text-center md:text-2xl md-computer:text-lg">Find a Club</h1>
             </div>
             <div className="flex flex-col flex-1 items-center md-computer:justify-evenly">
-                <button 
+                <button onClick={handleRecentDiscussion}
                 className="flex items-center justify-center w-[24vw] h-[24vw] box-border rounded-full bg-[#D3F0D3]
                 md-computer:h-[10vw] md-computer:w-[10vw]">
                     <img src={discussion} 

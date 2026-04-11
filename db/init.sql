@@ -49,11 +49,18 @@ CREATE TABLE users (
     user_password TEXT NOT NULL,
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
 
-    --These two keep track of last interacted with book/club for quick user access
-    last_updated_id INTEGER REFERENCES books(id),
-    last_updated_club INTEGER 
-);
+    --These two keep track of last interacted with club/discussion thread for quick user access
+    last_viewed_club INTEGER,
 
+    last_updated_club INTEGER,
+    last_updated_checkpoint INTEGER,
+    
+    CHECK (
+        (last_updated_club IS NULL AND last_updated_checkpoint IS NULL)
+        OR
+        (last_updated_club IS NOT NULL AND last_updated_checkpoint IS NOT NULL)
+    )
+);
 
 CREATE TABLE bookclubs (
     id SERIAL PRIMARY KEY,
@@ -72,6 +79,13 @@ CREATE TABLE bookclubs (
     visibility TEXT NOT NULL CHECK (visibility in ('public', 'private'))
 );
 
+--each entry is a checkpoint/thread in a bookclub
+CREATE TABLE checkpoints (
+    club_id INTEGER REFERENCES bookclubs(id) ON DELETE CASCADE,
+    checkpoint_num INTEGER NOT NULL,
+    PRIMARY KEY (club_id, checkpoint_num),
+    checkpoint_name TEXT NOT NULL
+);
 
 CREATE TABLE user_friends (
     friend1_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -116,13 +130,6 @@ CREATE TABLE user_authors (
     PRIMARY KEY (user_id, author_id)
 );
 
---each entry is a checkpoint/thread in a bookclub
-CREATE TABLE checkpoints (
-    club_id INTEGER REFERENCES bookclubs(id) ON DELETE CASCADE,
-    checkpoint_num INTEGER NOT NULL,
-    PRIMARY KEY (club_id, checkpoint_num),
-    checkpoint_name TEXT NOT NULL
-);
 
 --Associates users with bookclubs (many-to-many relationship)
 CREATE TABLE bookclub_members (
@@ -161,3 +168,15 @@ ON checkpoint_messages (club_id, checkpoint_num, created_at);
 
 CREATE INDEX idx_bookclub_members_lookup
 ON bookclub_members (user_id, club_id);
+
+ALTER TABLE users
+ADD CONSTRAINT fk_last_viewed_club
+FOREIGN KEY (last_viewed_club)
+REFERENCES bookclubs(id);
+
+-- users → checkpoints (composite FK)
+ALTER TABLE users
+ADD CONSTRAINT fk_last_checkpoint
+FOREIGN KEY (last_updated_club, last_updated_checkpoint)
+REFERENCES checkpoints(club_id, checkpoint_num)
+ON DELETE SET NULL;

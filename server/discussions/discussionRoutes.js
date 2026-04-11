@@ -4,6 +4,7 @@ import {
   updateUserProgress,
   getCheckpointMessages,
   postCheckpointMessage,
+  getRecentDiscussion
 } from "./discussionController.js";
 
 const router = express.Router();
@@ -15,5 +16,6 @@ router.get(
   getCheckpointMessages
 );
 router.post("/messages", postCheckpointMessage);
+router.get("/recent-discussion", getRecentDiscussion);
 
 export default router;

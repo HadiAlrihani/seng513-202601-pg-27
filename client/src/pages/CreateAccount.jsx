@@ -31,6 +31,7 @@ export default function CreateAccount() {
                 localStorage.setItem("wormly_username", data.user.username);
                 localStorage.setItem("wormly_email", data.user.email);
                 localStorage.setItem("wormly_token", data.token);
+                localStorage.setItem("wormly_isAdmin", data.user.is_admin ?? false);
 
                 localStorage.setItem("userId", String(data.user.id));
                 localStorage.setItem("username", data.user.username);
@@ -48,7 +49,7 @@ export default function CreateAccount() {
     };
 
     return (
-        <div className="h-full flex flex-col justify-evenly items-center py-[5vh] px-[10vh] md-short:py-[7vh]">
+        <div className="bg-zinc-50 h-full flex flex-col justify-evenly items-center py-[5vh] px-[10vh] md-short:py-[7vh]">
             <div className="flex md-computer:w-[60vw] max-h-[25vh] items-center justify-center">
                 <img className="hidden md-computer:block max-h-[25vh]" src={logo} />
                 <h1 className="flex font-italiana text-6xl md:text-7xl md-short:text-5xl text-center">
